@@ -1,0 +1,28 @@
+{
+  "name": "jsaudio",
+  "version": "0.0.1",
+  "description": "[WIP] JsAudio is (will be) to Node as PyAudio is to Python",
+  "main": "index.js",
+  "scripts": {
+    "test": "test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/musocrat/jsaudio.git"
+  },
+  "keywords": [
+    "portaudio",
+    "audio",
+    "sound",
+    "sound",
+    "card",
+    "asio",
+    "wasapi"
+  ],
+  "author": "Andrew Carpenter",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/musocrat/jsaudio/issues"
+  },
+  "homepage": "https://github.com/musocrat/jsaudio#readme"
+}
