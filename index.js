@@ -1,2 +1,7 @@
-console.log('This module does nothing at present!')
-module.exports = {}
+'use strict'
+
+// Setup
+const JsAudio = require('./lib/jsaudio')
+
+// Exports
+module.exports = JsAudio
