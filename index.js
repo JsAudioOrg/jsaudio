@@ -5,3 +5,18 @@ const JsAudio = require('./lib/jsaudio')
 
 // Exports
 module.exports = JsAudio
+
+// Test stuff, for now, needs to go into actual test assertions later
+let jsAudio = JsAudio.new()
+jsAudio
+  .on('error', (e) => {
+    console.log(e.stack)
+  }).on('initialize-done', () => {
+    console.log('initialized successfully!')
+  }).on('get-version-done', (version) => {
+    console.log(version)
+  }).on('test-params-done', console.log)
+
+jsAudio.initialize()
+jsAudio.getVersion()
+jsAudio.testParams('jerry', 'james', 'jenny')
