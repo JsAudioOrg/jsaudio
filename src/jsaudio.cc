@@ -2,16 +2,11 @@
   http://portaudio.com/docs/v19-doxydocs/api_overview.html
 */
 
+
+/* BEGIN Setup */
 #include "portaudio.h"
 #include "pa_asio.h"
 #include <nan.h>
-
-// Platform specific includes
-#ifdef _WIN32
-  #include <windows.h>
-#else
-  #include <unistd.h>
-#endif
 
 using namespace Nan;
 using String = v8::String;
@@ -66,8 +61,50 @@ NAN_METHOD(getHostApiInfo) {
   info.GetReturnValue().Set(obj);
 }
 
-/* BEGIN Host APIs */
+/* BEGIN Device APIs */
+NAN_METHOD(getDeviceCount) {
+  info.GetReturnValue().Set(Pa_GetDeviceCount());
+}
 
+NAN_METHOD(getDefaultInputDevice) {
+  info.GetReturnValue().Set(Pa_GetDefaultInputDevice());
+}
+
+NAN_METHOD(getDefaultOutputDevice) {
+  info.GetReturnValue().Set(Pa_GetDefaultOutputDevice());
+}
+
+NAN_METHOD(getDeviceInfo) {
+  HandleScope scope;
+  int dvc = info[0].IsEmpty()
+    ? Pa_GetDefaultInputDevice()
+    : info[0]->Uint32Value();
+  const PaDeviceInfo* di = Pa_GetDeviceInfo(dvc);
+  LocalObject obj = New<Object>();
+  LocalString diIndex = New("deviceIndex").ToLocalChecked();
+  LocalString diHost = New("hostApi").ToLocalChecked();
+  LocalString diName = New("name").ToLocalChecked();
+  LocalString diMaxI = New("maxInputChannels").ToLocalChecked();
+  LocalString diMaxO = New("maxOutputChannels").ToLocalChecked();
+  LocalString diDefLIL = New("defaultLowInputLatency").ToLocalChecked();
+  LocalString diDefLOL = New("defaultLowOutputLatency").ToLocalChecked();
+  LocalString diDefHIL = New("defaultHighInputLatency").ToLocalChecked();
+  LocalString diDefHOL = New("defaultHighOutputLatency").ToLocalChecked();
+  LocalString diDefSR = New("defaultSampleRate").ToLocalChecked();
+  obj->Set(diIndex, New<Number>(dvc));
+  obj->Set(diHost, New<Number>(di->hostApi));
+  obj->Set(diName, New<String>(di->name).ToLocalChecked());
+  obj->Set(diMaxI, New<Number>(di->maxInputChannels));
+  obj->Set(diMaxO, New<Number>(di->maxOutputChannels));
+  obj->Set(diDefLIL, New<Number>(di->defaultLowInputLatency));
+  obj->Set(diDefLOL, New<Number>(di->defaultLowOutputLatency));
+  obj->Set(diDefHIL, New<Number>(di->defaultHighInputLatency));
+  obj->Set(diDefHOL, New<Number>(di->defaultHighOutputLatency));
+  obj->Set(diDefSR, New<Number>(di->defaultSampleRate));
+  info.GetReturnValue().Set(obj);
+}
+
+/* BEGIN Init & Exports */
 NAN_MODULE_INIT(Init) {
   NAN_EXPORT(target, initialize);
   NAN_EXPORT(target, terminate);
@@ -75,6 +112,10 @@ NAN_MODULE_INIT(Init) {
   NAN_EXPORT(target, getHostApiCount);
   NAN_EXPORT(target, getDefaultHostApi);
   NAN_EXPORT(target, getHostApiInfo);
+  NAN_EXPORT(target, getDeviceCount);
+  NAN_EXPORT(target, getDefaultInputDevice);
+  NAN_EXPORT(target, getDefaultOutputDevice);
+  NAN_EXPORT(target, getDeviceInfo);
 }
 
 NODE_MODULE(jsaudio, Init)
