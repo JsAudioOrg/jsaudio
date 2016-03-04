@@ -2,6 +2,14 @@
 
 // Setup
 const JsAudio = require('./lib/jsaudio')
+const streamOpts = {
+  input: {
+    device: 1
+  },
+  output: {
+    device: 3
+  }
+}
 
 // Exports
 module.exports = JsAudio
@@ -20,6 +28,7 @@ jsAudio
   .on('get-default-input-device-done', console.log)
   .on('get-default-output-device-done', console.log)
   .on('get-device-info-done', console.log)
+  .on('open-stream-done', console.log)
 
 jsAudio.initialize()
 jsAudio.getVersion()
@@ -30,3 +39,4 @@ jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
 jsAudio.getDeviceInfo()
+jsAudio.openStream(streamOpts)

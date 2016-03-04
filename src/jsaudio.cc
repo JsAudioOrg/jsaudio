@@ -12,9 +12,18 @@ using namespace Nan;
 using String = v8::String;
 using Number = v8::Number;
 using Object = v8::Object;
+using Value = v8::Value;
+using Value = v8::Value;
 using LocalString = v8::Local<String>;
 using LocalNumber = v8::Local<Number>;
 using LocalObject = v8::Local<Object>;
+using LocalValue = v8::Local<Value>;
+using MaybeLocalValue = v8::MaybeLocal<Value>;
+
+/* BEGIN Helpers */
+int LocalizeInt (MaybeLocalValue lvIn) {
+  return lvIn.ToLocalChecked()->Uint32Value();
+}
 
 /* BEGIN Initialization, termination, and utility */
 NAN_METHOD(initialize) {
@@ -25,7 +34,10 @@ NAN_METHOD(initialize) {
 }
 
 NAN_METHOD(terminate) {
-  Pa_Terminate();
+  PaError err = Pa_Terminate();
+  if (err != paNoError) {
+    ThrowError(Pa_GetErrorText(err));
+  }
 }
 
 NAN_METHOD(getVersion) {
@@ -104,6 +116,39 @@ NAN_METHOD(getDeviceInfo) {
   info.GetReturnValue().Set(obj);
 }
 
+/* BEGIN Stream APIs */
+NAN_METHOD(openStream) {
+  HandleScope scope;
+  LocalObject obj = info[0]->ToObject();
+  LocalString input = New("input").ToLocalChecked();
+  LocalString output = New("output").ToLocalChecked();
+  LocalObject objInput = Get(obj, input).ToLocalChecked()->ToObject();
+  LocalObject objOutput = Get(obj, output).ToLocalChecked()->ToObject();
+  LocalString device = New("device").ToLocalChecked();
+  LocalString channelCount = New("channelCount").ToLocalChecked();
+  LocalString sampleFormat = New("sampleFormat").ToLocalChecked();
+  LocalString suggestedLatency = New("suggestedLatency").ToLocalChecked();
+
+  PaStreamParameters paramsIn = {
+    static_cast<PaDeviceIndex>(LocalizeInt(Get(objInput, device))),
+    static_cast<int>(LocalizeInt(Get(objInput, channelCount))),
+    static_cast<PaSampleFormat>(LocalizeInt(Get(objInput, sampleFormat))),
+    static_cast<PaTime>(LocalizeInt(Get(objInput, suggestedLatency))),
+    NULL
+  };
+
+  PaStreamParameters paramsOut = {
+    static_cast<PaDeviceIndex>(LocalizeInt(Get(objOutput, device))),
+    static_cast<int>(LocalizeInt(Get(objOutput, channelCount))),
+    static_cast<PaSampleFormat>(LocalizeInt(Get(objOutput, sampleFormat))),
+    static_cast<PaTime>(LocalizeInt(Get(objOutput, suggestedLatency))),
+    NULL
+  };
+
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(paramsIn.device));
+}
+
 /* BEGIN Init & Exports */
 NAN_MODULE_INIT(Init) {
   NAN_EXPORT(target, initialize);
@@ -116,6 +161,7 @@ NAN_MODULE_INIT(Init) {
   NAN_EXPORT(target, getDefaultInputDevice);
   NAN_EXPORT(target, getDefaultOutputDevice);
   NAN_EXPORT(target, getDeviceInfo);
+  NAN_EXPORT(target, openStream);
 }
 
 NODE_MODULE(jsaudio, Init)
