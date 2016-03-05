@@ -4,9 +4,12 @@
 
 
 /* BEGIN Setup */
+// #include "helpers.cc"
 #include "portaudio.h"
-#include "pa_asio.h"
 #include <nan.h>
+#ifdef _WIN32
+  #include "pa_asio.h"
+#endif
 
 using namespace Nan;
 using String = v8::String;
@@ -23,6 +26,74 @@ using MaybeLocalValue = v8::MaybeLocal<Value>;
 /* BEGIN Helpers */
 int LocalizeInt (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->Uint32Value();
+}
+
+LocalString ToLocString (std::string str) {
+  return New(str).ToLocalChecked();
+}
+
+LocalObject ToLocObject (MaybeLocalValue lvIn) {
+  return lvIn.ToLocalChecked()->ToObject();
+}
+
+void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai) {
+  obj->Set(
+    ToLocString("type"), New<Number>(hai->type));
+  obj->Set(
+    ToLocString("name"), New<String>(hai->name).ToLocalChecked());
+  obj->Set(
+    ToLocString("deviceCount"), New<Number>(hai->deviceCount));
+  obj->Set(
+    ToLocString("defaultInputDevice"), New<Number>(hai->defaultInputDevice));
+  obj->Set(
+    ToLocString("defaultOutputDevice"), New<Number>(hai->defaultOutputDevice));
+  return;
+}
+
+void DeviceInfoToLocalObject (LocalObject obj, const PaDeviceInfo* di) {
+  obj->Set(
+    ToLocString("hostApi"),
+    New<Number>(di->hostApi));
+  obj->Set(
+    ToLocString("name"),
+    New<String>(di->name).ToLocalChecked());
+  obj->Set(
+    ToLocString("maxInputChannels"),
+    New<Number>(di->maxInputChannels));
+  obj->Set(
+    ToLocString("maxOutputChannels"),
+    New<Number>(di->maxOutputChannels));
+  obj->Set(
+    ToLocString("defaultLowInputLatency"),
+    New<Number>(di->defaultLowInputLatency));
+  obj->Set(
+    ToLocString("defaultLowOutputLatency"),
+    New<Number>(di->defaultLowOutputLatency));
+  obj->Set(
+    ToLocString("defaultHighInputLatency"),
+    New<Number>(di->defaultHighInputLatency));
+  obj->Set(
+    ToLocString("defaultHighOutputLatency"),
+    New<Number>(di->defaultHighOutputLatency));
+  obj->Set(
+    ToLocString("defaultSampleRate"),
+    New<Number>(di->defaultSampleRate));
+  return;
+}
+
+PaStreamParameters LocObjToPaStreamParameters (LocalObject obj) {
+  PaStreamParameters params = {
+    static_cast<PaDeviceIndex>(
+      LocalizeInt(Get(obj, ToLocString("device")))),
+    static_cast<int>(
+      LocalizeInt(Get(obj, ToLocString("channelCount")))),
+    static_cast<PaSampleFormat>(
+      LocalizeInt(Get(obj, ToLocString("sampleFormat")))),
+    static_cast<PaTime>(
+      LocalizeInt(Get(obj, ToLocString("suggestedLatency")))),
+    NULL
+  };
+  return params;
 }
 
 /* BEGIN Initialization, termination, and utility */
@@ -58,18 +129,8 @@ NAN_METHOD(getHostApiInfo) {
   int api = info[0].IsEmpty() ? Pa_GetDefaultHostApi() : info[0]->Uint32Value();
   const PaHostApiInfo* hai = Pa_GetHostApiInfo(api);
   LocalObject obj = New<Object>();
-  LocalString haiIndex = New("apiIndex").ToLocalChecked();
-  LocalString haiType = New("type").ToLocalChecked();
-  LocalString haiName = New("name").ToLocalChecked();
-  LocalString haiDefC = New("deviceCount").ToLocalChecked();
-  LocalString haiDefIn = New("defaultInputDevice").ToLocalChecked();
-  LocalString haiDefOut = New("defaultOutputDevice").ToLocalChecked();
-  obj->Set(haiIndex, New<Number>(api));
-  obj->Set(haiType, New<Number>(hai->type));
-  obj->Set(haiName, New<String>(hai->name).ToLocalChecked());
-  obj->Set(haiDefC, New<Number>(hai->deviceCount));
-  obj->Set(haiDefIn, New<Number>(hai->defaultInputDevice));
-  obj->Set(haiDefOut, New<Number>(hai->defaultOutputDevice));
+  obj->Set(ToLocString("apiIndex"), New<Number>(api));
+  HostApiInfoToLocalObject(obj, hai);
   info.GetReturnValue().Set(obj);
 }
 
@@ -93,26 +154,8 @@ NAN_METHOD(getDeviceInfo) {
     : info[0]->Uint32Value();
   const PaDeviceInfo* di = Pa_GetDeviceInfo(dvc);
   LocalObject obj = New<Object>();
-  LocalString diIndex = New("deviceIndex").ToLocalChecked();
-  LocalString diHost = New("hostApi").ToLocalChecked();
-  LocalString diName = New("name").ToLocalChecked();
-  LocalString diMaxI = New("maxInputChannels").ToLocalChecked();
-  LocalString diMaxO = New("maxOutputChannels").ToLocalChecked();
-  LocalString diDefLIL = New("defaultLowInputLatency").ToLocalChecked();
-  LocalString diDefLOL = New("defaultLowOutputLatency").ToLocalChecked();
-  LocalString diDefHIL = New("defaultHighInputLatency").ToLocalChecked();
-  LocalString diDefHOL = New("defaultHighOutputLatency").ToLocalChecked();
-  LocalString diDefSR = New("defaultSampleRate").ToLocalChecked();
-  obj->Set(diIndex, New<Number>(dvc));
-  obj->Set(diHost, New<Number>(di->hostApi));
-  obj->Set(diName, New<String>(di->name).ToLocalChecked());
-  obj->Set(diMaxI, New<Number>(di->maxInputChannels));
-  obj->Set(diMaxO, New<Number>(di->maxOutputChannels));
-  obj->Set(diDefLIL, New<Number>(di->defaultLowInputLatency));
-  obj->Set(diDefLOL, New<Number>(di->defaultLowOutputLatency));
-  obj->Set(diDefHIL, New<Number>(di->defaultHighInputLatency));
-  obj->Set(diDefHOL, New<Number>(di->defaultHighOutputLatency));
-  obj->Set(diDefSR, New<Number>(di->defaultSampleRate));
+  obj->Set(ToLocString("deviceIndex"), New<Number>(dvc));
+  DeviceInfoToLocalObject(obj, di);
   info.GetReturnValue().Set(obj);
 }
 
@@ -120,31 +163,10 @@ NAN_METHOD(getDeviceInfo) {
 NAN_METHOD(openStream) {
   HandleScope scope;
   LocalObject obj = info[0]->ToObject();
-  LocalString input = New("input").ToLocalChecked();
-  LocalString output = New("output").ToLocalChecked();
-  LocalObject objInput = Get(obj, input).ToLocalChecked()->ToObject();
-  LocalObject objOutput = Get(obj, output).ToLocalChecked()->ToObject();
-  LocalString device = New("device").ToLocalChecked();
-  LocalString channelCount = New("channelCount").ToLocalChecked();
-  LocalString sampleFormat = New("sampleFormat").ToLocalChecked();
-  LocalString suggestedLatency = New("suggestedLatency").ToLocalChecked();
-
-  PaStreamParameters paramsIn = {
-    static_cast<PaDeviceIndex>(LocalizeInt(Get(objInput, device))),
-    static_cast<int>(LocalizeInt(Get(objInput, channelCount))),
-    static_cast<PaSampleFormat>(LocalizeInt(Get(objInput, sampleFormat))),
-    static_cast<PaTime>(LocalizeInt(Get(objInput, suggestedLatency))),
-    NULL
-  };
-
-  PaStreamParameters paramsOut = {
-    static_cast<PaDeviceIndex>(LocalizeInt(Get(objOutput, device))),
-    static_cast<int>(LocalizeInt(Get(objOutput, channelCount))),
-    static_cast<PaSampleFormat>(LocalizeInt(Get(objOutput, sampleFormat))),
-    static_cast<PaTime>(LocalizeInt(Get(objOutput, suggestedLatency))),
-    NULL
-  };
-
+  LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
+  LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
+  PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
+  PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
   // Testing that params are set right
   info.GetReturnValue().Set(New<Number>(paramsIn.device));
 }
