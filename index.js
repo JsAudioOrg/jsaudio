@@ -8,7 +8,10 @@ const streamOpts = {
   },
   output: {
     device: 3
-  }
+  },
+  sampleRate: 44100,
+  framesPerBuffer: 64,
+  streamFlags: 0
 }
 
 // Exports
