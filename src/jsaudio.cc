@@ -4,7 +4,7 @@
 
 
 /* BEGIN Setup */
-// #include "helpers.cc"
+#include <functional>
 #include "portaudio.h"
 #include <nan.h>
 #ifdef _WIN32
@@ -12,16 +12,22 @@
 #endif
 
 using namespace Nan;
+using Isolate = v8::Isolate;
 using String = v8::String;
 using Number = v8::Number;
 using Object = v8::Object;
 using Value = v8::Value;
-using Value = v8::Value;
+using Function = v8::Function;
 using LocalString = v8::Local<String>;
 using LocalNumber = v8::Local<Number>;
 using LocalObject = v8::Local<Object>;
 using LocalValue = v8::Local<Value>;
+using LocalFunction = v8::Local<Function>;
 using MaybeLocalValue = v8::MaybeLocal<Value>;
+
+/* Initialize stream and jsStreamCb as global */
+PaStream *stream;
+LocalFunction jsStreamCb;
 
 /* BEGIN Helpers */
 int LocalizeInt (MaybeLocalValue lvIn) {
@@ -178,9 +184,32 @@ NAN_METHOD(getDeviceInfo) {
 }
 
 /* BEGIN Stream APIs */
+static int streamCb (
+  const void *input,
+  void *output,
+  unsigned long frameCount,
+  const PaStreamCallbackTimeInfo *timeInfo,
+  PaStreamCallbackFlags statusFlags,
+  void *userData
+) {
+  printf("%s\n", "Called");
+  const unsigned argc = 6;
+  LocalValue argv[argc] = {
+    ToLocString(""),
+    ToLocString(""),
+    ToLocString(""),
+    ToLocString(""),
+    ToLocString(""),
+    ToLocString("")
+  };
+  jsStreamCb->Call(GetCurrentContext()->Global(), argc, argv);
+  return 0;
+}
+
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(openStream) {
   HandleScope scope;
+  PaError err;
   // Get params objects
   LocalObject obj = info[0]->ToObject();
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
@@ -195,20 +224,31 @@ NAN_METHOD(openStream) {
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
   // Callback
   // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
+  jsStreamCb = info[1].As<Function>();
   // Start stream
-  PaStream *stream;
-  PaError err = Pa_OpenStream(
+  err = Pa_OpenStream(
     &stream,
     &paramsIn,
     &paramsOut,
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    NULL,
+    streamCb,
     NULL
   );
+  if (err != paNoError) {
+    printf("%s\n", "OpenStream: ");
+    printf("%s\n", Pa_GetErrorText(err));
+    // ThrowError(Pa_GetErrorText(err));
+  }
+  err = Pa_StartStream(stream);
+  if (err != paNoError) {
+    printf("%s\n", "StartStream: ");
+    printf("%s\n", Pa_GetErrorText(err));
+    // ThrowError(Pa_GetErrorText(err));
+  }
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(streamFlags));
+  info.GetReturnValue().Set(New<Number>(paNonInterleaved));
 }
 
 /*

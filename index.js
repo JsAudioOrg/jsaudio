@@ -2,12 +2,28 @@
 
 // Setup
 const JsAudio = require('./lib/jsaudio')
+const formats = {
+  paFloat32: 1,
+  paInt32: 2,
+  paInt24: 4,
+  paInt16: 8,
+  paInt8: 16,
+  paUInt8: 32,
+  paCustomFormat: 65536,
+  paNonInterleaved: 2147483648
+}
 const streamOpts = {
   input: {
-    device: 1
+    device: 1,
+    channelCount: 2,
+    sampleFormat: formats.paFloat32,
+    suggestedLatency: 0.09
   },
   output: {
-    device: 3
+    device: 3,
+    channelCount: 2,
+    sampleFormat: formats.paFloat32,
+    suggestedLatency: 0.09
   },
   sampleRate: 44100,
   framesPerBuffer: 64,
@@ -41,5 +57,7 @@ jsAudio.getHostApiInfo()
 jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
-jsAudio.getDeviceInfo()
+jsAudio.getDeviceInfo(0)
+jsAudio.getDeviceInfo(3)
 jsAudio.openStream(streamOpts)
+// setTimeout(() => console.log('hep2'), 5000)
