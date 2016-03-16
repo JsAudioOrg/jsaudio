@@ -4,7 +4,6 @@
 
 
 /* BEGIN Setup */
-#include <functional>
 #include "portaudio.h"
 #include <nan.h>
 #ifdef _WIN32
@@ -226,6 +225,7 @@ NAN_METHOD(openStream) {
   // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
   jsStreamCb = info[1].As<Function>();
   // Start stream
+  // ToDo: Do this in AsyncQueueWorker
   err = Pa_OpenStream(
     &stream,
     &paramsIn,
