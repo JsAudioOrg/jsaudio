@@ -7,7 +7,8 @@ class JsPaStream : public Nan::ObjectWrap {
 public:
     static NAN_MODULE_INIT(Init);
 
-    inline PaStream* streamPointer() const { return _stream; }
+    inline PaStream* streamPtr() { return _stream; }
+    inline PaStream** streamPtrRef() { return &_stream; }
 private:
     explicit JsPaStream();
     ~JsPaStream();

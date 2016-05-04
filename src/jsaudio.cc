@@ -6,9 +6,9 @@
 /* BEGIN Setup */
 #include "jsaudio.h"
 #include "helpers.h"
+#include "stream.h"
 
 /* Initialize stream and jsStreamCb as global */
-PaStream *stream;
 LocalFunction jsStreamCb;
 
 /* BEGIN Initialization, termination, and utility */
@@ -113,6 +113,7 @@ NAN_METHOD(openStream) {
   PaError err;
   // Get params objects
   LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
@@ -129,7 +130,7 @@ NAN_METHOD(openStream) {
   // Start stream
   // ToDo: Do this in AsyncQueueWorker
   err = Pa_OpenStream(
-    &stream,
+    stream->streamPtrRef(),
     &paramsIn,
     &paramsOut,
     sampleRate,
@@ -143,14 +144,8 @@ NAN_METHOD(openStream) {
     printf("%s\n", Pa_GetErrorText(err));
     // ThrowError(Pa_GetErrorText(err));
   }
-  err = Pa_StartStream(stream);
-  if (err != paNoError) {
-    printf("%s\n", "StartStream: ");
-    printf("%s\n", Pa_GetErrorText(err));
-    // ThrowError(Pa_GetErrorText(err));
-  }
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(paNonInterleaved));
+  info.GetReturnValue().Set(New<Number>(err));
 }
 
 /*
