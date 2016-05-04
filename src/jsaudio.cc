@@ -4,11 +4,8 @@
 
 
 /* BEGIN Setup */
-#include "portaudio.h"
-#include <nan.h>
-#ifdef _WIN32
-  #include "pa_asio.h"
-#endif
+#include "jsaudio.h"
+#include "helpers.h"
 
 /* Initialize stream and jsStreamCb as global */
 PaStream *stream;
@@ -162,21 +159,3 @@ NAN_METHOD(openDefaultStream) {
   // ToDo: implement this
 }
 */
-
-/* BEGIN Init & Exports */
-NAN_MODULE_INIT(Init) {
-  NAN_EXPORT(target, initialize);
-  NAN_EXPORT(target, terminate);
-  NAN_EXPORT(target, getVersion);
-  NAN_EXPORT(target, getHostApiCount);
-  NAN_EXPORT(target, getDefaultHostApi);
-  NAN_EXPORT(target, getHostApiInfo);
-  NAN_EXPORT(target, getDeviceCount);
-  NAN_EXPORT(target, getDefaultInputDevice);
-  NAN_EXPORT(target, getDefaultOutputDevice);
-  NAN_EXPORT(target, getDeviceInfo);
-  NAN_EXPORT(target, openStream);
-  // NAN_EXPORT(target, openDefaultStream);
-}
-
-NODE_MODULE(jsaudio, Init)

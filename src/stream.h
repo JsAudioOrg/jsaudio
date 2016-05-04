@@ -3,17 +3,18 @@
 
 #include "jsaudio.h"
 
-class StreamContainer : public ObjectWrap {
- public:
-  static void Init(v8::Local<v8::Object> exports);
+class JsPaStream : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
 
- private:
-  explicit MyObject(double value = 0);
-  ~MyObject();
+    inline PaStream* streamPointer() const { return _stream; }
+private:
+    explicit JsPaStream();
+    ~JsPaStream();
 
-  static void New(const FunctionCallbackInfo<v8::Value>& info);
-  static Persistent<v8::Function> constructor;
-  PaStream *stream;
+    static NAN_METHOD(New);
+    static Persistent<Function> constructor;
+    PaStream* _stream;
 };
 
 #endif
