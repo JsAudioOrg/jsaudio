@@ -14,6 +14,7 @@ NAN_MODULE_INIT(InitAll) {
     NAN_EXPORT(target, getDefaultOutputDevice);
     NAN_EXPORT(target, getDeviceInfo);
     NAN_EXPORT(target, openStream);
+    NAN_EXPORT(target, startStream);
     // NAN_EXPORT(target, openDefaultStream);
     
     JsPaStream::Init(target);

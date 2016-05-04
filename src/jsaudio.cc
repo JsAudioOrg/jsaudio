@@ -84,51 +84,28 @@ NAN_METHOD(getDeviceInfo) {
   info.GetReturnValue().Set(obj);
 }
 
-/* BEGIN Stream APIs */
-static int streamCb (
-  const void *input,
-  void *output,
-  unsigned long frameCount,
-  const PaStreamCallbackTimeInfo *timeInfo,
-  PaStreamCallbackFlags statusFlags,
-  void *userData
-) {
-  printf("%s\n", "Called");
-  const unsigned argc = 6;
-  LocalValue argv[argc] = {
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString("")
-  };
-  jsStreamCb->Call(GetCurrentContext()->Global(), argc, argv);
-  return 0;
-}
-
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(openStream) {
   HandleScope scope;
   PaError err;
+    
   // Get params objects
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
+    
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
+    
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
   PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
   // Get stream options
   double sampleRate = LocalizeDouble(Get(obj, ToLocString("sampleRate")));
-	unsigned long framesPerBuffer = LocalizeULong(
+  unsigned long framesPerBuffer = LocalizeULong(
     Get(obj, ToLocString("framesPerBuffer")));
   PaStreamFlags streamFlags = static_cast<PaStreamFlags>(
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
-  // Callback
-  // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
-  jsStreamCb = info[1].As<Function>();
+  
   // Start stream
-  // ToDo: Do this in AsyncQueueWorker
   err = Pa_OpenStream(
     stream->streamPtrRef(),
     &paramsIn,
@@ -136,7 +113,7 @@ NAN_METHOD(openStream) {
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    streamCb,
+    NULL,
     NULL
   );
   if (err != paNoError) {
@@ -154,3 +131,23 @@ NAN_METHOD(openDefaultStream) {
   // ToDo: implement this
 }
 */
+
+//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
+NAN_METHOD(startStream) {
+  HandleScope scope;
+  PaError err;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  
+  // Start stream
+  err = Pa_StartStream(stream->streamPtr());
+  if (err != paNoError) {
+    printf("%s\n", "OpenStream: ");
+    printf("%s\n", Pa_GetErrorText(err));
+    // ThrowError(Pa_GetErrorText(err));
+  }
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(err));  
+}
