@@ -4,14 +4,11 @@
 
 
 /* BEGIN Setup */
-#include "portaudio.h"
-#include <nan.h>
-#ifdef _WIN32
-  #include "pa_asio.h"
-#endif
+#include "jsaudio.h"
+#include "helpers.h"
+#include "stream.h"
 
 /* Initialize stream and jsStreamCb as global */
-PaStream *stream;
 LocalFunction jsStreamCb;
 
 /* BEGIN Initialization, termination, and utility */
@@ -116,6 +113,7 @@ NAN_METHOD(openStream) {
   PaError err;
   // Get params objects
   LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
@@ -132,7 +130,7 @@ NAN_METHOD(openStream) {
   // Start stream
   // ToDo: Do this in AsyncQueueWorker
   err = Pa_OpenStream(
-    &stream,
+    stream->streamPtrRef(),
     &paramsIn,
     &paramsOut,
     sampleRate,
@@ -146,14 +144,8 @@ NAN_METHOD(openStream) {
     printf("%s\n", Pa_GetErrorText(err));
     // ThrowError(Pa_GetErrorText(err));
   }
-  err = Pa_StartStream(stream);
-  if (err != paNoError) {
-    printf("%s\n", "StartStream: ");
-    printf("%s\n", Pa_GetErrorText(err));
-    // ThrowError(Pa_GetErrorText(err));
-  }
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(paNonInterleaved));
+  info.GetReturnValue().Set(New<Number>(err));
 }
 
 /*
@@ -162,21 +154,3 @@ NAN_METHOD(openDefaultStream) {
   // ToDo: implement this
 }
 */
-
-/* BEGIN Init & Exports */
-NAN_MODULE_INIT(Init) {
-  NAN_EXPORT(target, initialize);
-  NAN_EXPORT(target, terminate);
-  NAN_EXPORT(target, getVersion);
-  NAN_EXPORT(target, getHostApiCount);
-  NAN_EXPORT(target, getDefaultHostApi);
-  NAN_EXPORT(target, getHostApiInfo);
-  NAN_EXPORT(target, getDeviceCount);
-  NAN_EXPORT(target, getDefaultInputDevice);
-  NAN_EXPORT(target, getDefaultOutputDevice);
-  NAN_EXPORT(target, getDeviceInfo);
-  NAN_EXPORT(target, openStream);
-  // NAN_EXPORT(target, openDefaultStream);
-}
-
-NODE_MODULE(jsaudio, Init)
