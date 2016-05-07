@@ -64,30 +64,36 @@ jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
 jsAudio.getDeviceInfo(1)
-for(var i = 40; i < 60; i++)
-  jsAudio.getDeviceInfo(i)
+jsAudio.getDeviceInfo(10)
 jsAudio.openStream(streamOpts)
 jsAudio.startStream(stream)
 
 var buffer
 setTimeout(() => {
   var framesToWrite = 0,
+    framesToRead = 0,
     phase = 0,
-    phaseIncrement = (2 * Math.PI * 80) / 48000.0;
+    phaseIncrement = (2 * Math.PI * 80) / 48000.0,
+    readBuffer = new Float32Array();
   while(1) {
-    framesToWrite = JsAudioNative.getStreamWriteAvailable(stream);
-    if(framesToWrite === 0)
-      continue;
-    console.log(framesToWrite);
-    buffer = new Float32Array(framesToWrite * 2);
-    for(var i = 0; i <= framesToWrite; i++){
-      buffer[i * 2] = Math.cos(phase) * 2 - 1;
-      buffer[i * 2 + 1] = Math.cos(phase * 2) * 2 - 1;
-
-      phase += phaseIncrement;
+    framesToRead = JsAudioNative.getStreamReadAvailable(stream);
+    if(framesToRead) {
+      var tempBuffer = new Float32Array(framesToRead * 2)
+      JsAudioNative.readStream(stream, tempBuffer)
+      
+      var copyBuffer = new Float32Array(readBuffer.length + tempBuffer.length)
+      copyBuffer.set(readBuffer)
+      copyBuffer.set(tempBuffer, readBuffer.length)
+      readBuffer = new Float32Array(copyBuffer)
     }
+    framesToWrite = JsAudioNative.getStreamWriteAvailable(stream)
+    if(framesToWrite && readBuffer.length > 0) {
+      buffer = new Float32Array(readBuffer.buffer, 0, framesToWrite * 2)
 
-    JsAudioNative.writeStream(stream, buffer);
+      JsAudioNative.writeStream(stream, buffer)
+      
+      readBuffer = new Float32Array(readBuffer.buffer, framesToWrite * 2 * Float32Array.BYTES_PER_ELEMENT)
+    }
   }
 }, 1000)
 

@@ -200,3 +200,22 @@ NAN_METHOD(writeStream) {
   // Testing that params are set right
   info.GetReturnValue().Set(New<Number>(retVal));  
 }
+
+NAN_METHOD(readStream) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+    
+  // Get the buffer data
+  TypedArrayContents<float> buf(info[1]);
+  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  
+  // Start stream
+  retVal = Pa_ReadStream(stream->streamPtr(), *buf, bufFrames);
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
+}
