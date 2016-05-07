@@ -16,19 +16,19 @@ const formats = {
 }
 var streamOpts = {
   input: {
-    device: 1,
+    device: 57,
     channelCount: 2,
     sampleFormat: formats.paFloat32,
-    suggestedLatency: 0.09
+    suggestedLatency: 0.003
   },
   output: {
-    device: 10,
+    device: 43,
     channelCount: 2,
     sampleFormat: formats.paFloat32,
-    suggestedLatency: 0.09
+    suggestedLatency: 0.003
   },
-  sampleRate: 44100,
-  framesPerBuffer: 4096,
+  sampleRate: 48000,
+  framesPerBuffer: 0,
   streamFlags: 0
 }
 
@@ -59,7 +59,7 @@ jsAudio.initialize()
 jsAudio.getVersion()
 jsAudio.getHostApiCount()
 jsAudio.getDefaultHostApi()
-jsAudio.getHostApiInfo()
+jsAudio.getHostApiInfo(2)
 jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
@@ -71,22 +71,29 @@ jsAudio.startStream(stream)
 var buffer
 setTimeout(() => {
   var framesToWrite = 0,
+    framesToRead = 0,
     phase = 0,
-    phaseIncrement = (2 * Math.PI * 80) / 44100.0;
+    phaseIncrement = (2 * Math.PI * 80) / 48000.0,
+    readBuffer = new Float32Array();
   while(1) {
-    framesToWrite = JsAudioNative.getStreamWriteAvailable(stream);
-    if(framesToWrite === 0)
-      continue;
-    console.log(framesToWrite);
-    buffer = new Float32Array(framesToWrite * 2);
-    for(var i = 0; i <= framesToWrite; i++){
-      buffer[i * 2] = Math.cos(phase) * 2 - 1;
-      buffer[i * 2 + 1] = Math.cos(phase * 2) * 2 - 1;
-
-      phase += phaseIncrement;
+    framesToRead = JsAudioNative.getStreamReadAvailable(stream);
+    if(framesToRead) {
+      var tempBuffer = new Float32Array(framesToRead * 2)
+      JsAudioNative.readStream(stream, tempBuffer)
+      
+      var copyBuffer = new Float32Array(readBuffer.length + tempBuffer.length)
+      copyBuffer.set(readBuffer)
+      copyBuffer.set(tempBuffer, readBuffer.length)
+      readBuffer = new Float32Array(copyBuffer)
     }
+    framesToWrite = JsAudioNative.getStreamWriteAvailable(stream)
+    if(framesToWrite && readBuffer.length > 0) {
+      buffer = new Float32Array(readBuffer.buffer, 0, framesToWrite * 2)
 
-    JsAudioNative.writeStream(stream, buffer);
+      JsAudioNative.writeStream(stream, buffer)
+      
+      readBuffer = new Float32Array(readBuffer.buffer, framesToWrite * 2 * Float32Array.BYTES_PER_ELEMENT)
+    }
   }
 }, 1000)
 
