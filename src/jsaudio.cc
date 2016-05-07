@@ -144,10 +144,44 @@ NAN_METHOD(startStream) {
   // Start stream
   err = Pa_StartStream(stream->streamPtr());
   if (err != paNoError) {
-    printf("%s\n", "OpenStream: ");
+    printf("%s\n", "StartStream: ");
     printf("%s\n", Pa_GetErrorText(err));
     // ThrowError(Pa_GetErrorText(err));
   }
   // Testing that params are set right
   info.GetReturnValue().Set(New<Number>(err));  
+}
+
+NAN_METHOD(getStreamWriteAvailable) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  
+  // Start stream
+  retVal = Pa_GetStreamWriteAvailable(stream->streamPtr());
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
+}
+
+NAN_METHOD(writeStream) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+    
+  // Get the buffer data
+  TypedArrayContents<float> buf(info[1]);
+  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  
+  // Start stream
+  retVal = Pa_WriteStream(stream->streamPtr(), *buf, bufFrames);
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
 }
