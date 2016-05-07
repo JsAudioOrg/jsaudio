@@ -167,6 +167,21 @@ NAN_METHOD(getStreamWriteAvailable) {
   info.GetReturnValue().Set(New<Number>(retVal));  
 }
 
+NAN_METHOD(getStreamReadAvailable) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  
+  // Start stream
+  retVal = Pa_GetStreamReadAvailable(stream->streamPtr());
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
+}
+
 NAN_METHOD(writeStream) {
   HandleScope scope;
   long retVal;

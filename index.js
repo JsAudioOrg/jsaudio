@@ -16,19 +16,19 @@ const formats = {
 }
 var streamOpts = {
   input: {
-    device: 1,
+    device: 57,
     channelCount: 2,
     sampleFormat: formats.paFloat32,
-    suggestedLatency: 0.09
+    suggestedLatency: 0.003
   },
   output: {
-    device: 10,
+    device: 43,
     channelCount: 2,
     sampleFormat: formats.paFloat32,
-    suggestedLatency: 0.09
+    suggestedLatency: 0.003
   },
-  sampleRate: 44100,
-  framesPerBuffer: 4096,
+  sampleRate: 48000,
+  framesPerBuffer: 0,
   streamFlags: 0
 }
 
@@ -59,12 +59,13 @@ jsAudio.initialize()
 jsAudio.getVersion()
 jsAudio.getHostApiCount()
 jsAudio.getDefaultHostApi()
-jsAudio.getHostApiInfo()
+jsAudio.getHostApiInfo(2)
 jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
 jsAudio.getDeviceInfo(1)
-jsAudio.getDeviceInfo(10)
+for(var i = 40; i < 60; i++)
+  jsAudio.getDeviceInfo(i)
 jsAudio.openStream(streamOpts)
 jsAudio.startStream(stream)
 
@@ -72,7 +73,7 @@ var buffer
 setTimeout(() => {
   var framesToWrite = 0,
     phase = 0,
-    phaseIncrement = (2 * Math.PI * 80) / 44100.0;
+    phaseIncrement = (2 * Math.PI * 80) / 48000.0;
   while(1) {
     framesToWrite = JsAudioNative.getStreamWriteAvailable(stream);
     if(framesToWrite === 0)
