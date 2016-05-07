@@ -4,110 +4,12 @@
 
 
 /* BEGIN Setup */
-#include "portaudio.h"
-#include <nan.h>
-#ifdef _WIN32
-  #include "pa_asio.h"
-#endif
-
-using namespace Nan;
-using Isolate = v8::Isolate;
-using String = v8::String;
-using Number = v8::Number;
-using Object = v8::Object;
-using Value = v8::Value;
-using Function = v8::Function;
-using LocalString = v8::Local<String>;
-using LocalNumber = v8::Local<Number>;
-using LocalObject = v8::Local<Object>;
-using LocalValue = v8::Local<Value>;
-using LocalFunction = v8::Local<Function>;
-using MaybeLocalValue = v8::MaybeLocal<Value>;
+#include "jsaudio.h"
+#include "helpers.h"
+#include "stream.h"
 
 /* Initialize stream and jsStreamCb as global */
-PaStream *stream;
 LocalFunction jsStreamCb;
-
-/* BEGIN Helpers */
-int LocalizeInt (MaybeLocalValue lvIn) {
-  return lvIn.ToLocalChecked()->Uint32Value();
-}
-
-double LocalizeDouble (MaybeLocalValue lvIn) {
-  return static_cast<double>(lvIn.ToLocalChecked()->IntegerValue());
-}
-
-unsigned long LocalizeULong (MaybeLocalValue lvIn) {
-  return static_cast<unsigned long>(lvIn.ToLocalChecked()->IntegerValue());
-}
-
-LocalString ToLocString (std::string str) {
-  return New(str).ToLocalChecked();
-}
-
-LocalObject ToLocObject (MaybeLocalValue lvIn) {
-  return lvIn.ToLocalChecked()->ToObject();
-}
-
-void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai) {
-  obj->Set(
-    ToLocString("type"), New<Number>(hai->type));
-  obj->Set(
-    ToLocString("name"), New<String>(hai->name).ToLocalChecked());
-  obj->Set(
-    ToLocString("deviceCount"), New<Number>(hai->deviceCount));
-  obj->Set(
-    ToLocString("defaultInputDevice"), New<Number>(hai->defaultInputDevice));
-  obj->Set(
-    ToLocString("defaultOutputDevice"), New<Number>(hai->defaultOutputDevice));
-  return;
-}
-
-void DeviceInfoToLocalObject (LocalObject obj, const PaDeviceInfo* di) {
-  obj->Set(
-    ToLocString("hostApi"),
-    New<Number>(di->hostApi));
-  obj->Set(
-    ToLocString("name"),
-    New<String>(di->name).ToLocalChecked());
-  obj->Set(
-    ToLocString("maxInputChannels"),
-    New<Number>(di->maxInputChannels));
-  obj->Set(
-    ToLocString("maxOutputChannels"),
-    New<Number>(di->maxOutputChannels));
-  obj->Set(
-    ToLocString("defaultLowInputLatency"),
-    New<Number>(di->defaultLowInputLatency));
-  obj->Set(
-    ToLocString("defaultLowOutputLatency"),
-    New<Number>(di->defaultLowOutputLatency));
-  obj->Set(
-    ToLocString("defaultHighInputLatency"),
-    New<Number>(di->defaultHighInputLatency));
-  obj->Set(
-    ToLocString("defaultHighOutputLatency"),
-    New<Number>(di->defaultHighOutputLatency));
-  obj->Set(
-    ToLocString("defaultSampleRate"),
-    New<Number>(di->defaultSampleRate));
-  return;
-}
-
-PaStreamParameters LocObjToPaStreamParameters (LocalObject obj) {
-  PaStreamParameters params = {
-    static_cast<PaDeviceIndex>(
-      LocalizeInt(Get(obj, ToLocString("device")))),
-    static_cast<int>(
-      LocalizeInt(Get(obj, ToLocString("channelCount")))),
-    static_cast<PaSampleFormat>(
-      LocalizeInt(Get(obj, ToLocString("sampleFormat")))),
-    static_cast<PaTime>(
-      LocalizeInt(Get(obj, ToLocString("suggestedLatency")))),
-    NULL
-  };
-  return params;
-}
 
 /* BEGIN Initialization, termination, and utility */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#abed859482d156622d9332dff9b2d89da
@@ -182,58 +84,36 @@ NAN_METHOD(getDeviceInfo) {
   info.GetReturnValue().Set(obj);
 }
 
-/* BEGIN Stream APIs */
-static int streamCb (
-  const void *input,
-  void *output,
-  unsigned long frameCount,
-  const PaStreamCallbackTimeInfo *timeInfo,
-  PaStreamCallbackFlags statusFlags,
-  void *userData
-) {
-  printf("%s\n", "Called");
-  const unsigned argc = 6;
-  LocalValue argv[argc] = {
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString(""),
-    ToLocString("")
-  };
-  jsStreamCb->Call(GetCurrentContext()->Global(), argc, argv);
-  return 0;
-}
-
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(openStream) {
   HandleScope scope;
   PaError err;
+    
   // Get params objects
   LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
+    
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
+    
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
   PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
   // Get stream options
   double sampleRate = LocalizeDouble(Get(obj, ToLocString("sampleRate")));
-	unsigned long framesPerBuffer = LocalizeULong(
+  unsigned long framesPerBuffer = LocalizeULong(
     Get(obj, ToLocString("framesPerBuffer")));
   PaStreamFlags streamFlags = static_cast<PaStreamFlags>(
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
-  // Callback
-  // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a8a60fb2a5ec9cbade3f54a9c978e2710
-  jsStreamCb = info[1].As<Function>();
+  
   // Start stream
-  // ToDo: Do this in AsyncQueueWorker
   err = Pa_OpenStream(
-    &stream,
+    stream->streamPtrRef(),
     &paramsIn,
     &paramsOut,
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    streamCb,
+    NULL,
     NULL
   );
   if (err != paNoError) {
@@ -241,14 +121,8 @@ NAN_METHOD(openStream) {
     printf("%s\n", Pa_GetErrorText(err));
     // ThrowError(Pa_GetErrorText(err));
   }
-  err = Pa_StartStream(stream);
-  if (err != paNoError) {
-    printf("%s\n", "StartStream: ");
-    printf("%s\n", Pa_GetErrorText(err));
-    // ThrowError(Pa_GetErrorText(err));
-  }
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(paNonInterleaved));
+  info.GetReturnValue().Set(New<Number>(err));
 }
 
 /*
@@ -258,20 +132,56 @@ NAN_METHOD(openDefaultStream) {
 }
 */
 
-/* BEGIN Init & Exports */
-NAN_MODULE_INIT(Init) {
-  NAN_EXPORT(target, initialize);
-  NAN_EXPORT(target, terminate);
-  NAN_EXPORT(target, getVersion);
-  NAN_EXPORT(target, getHostApiCount);
-  NAN_EXPORT(target, getDefaultHostApi);
-  NAN_EXPORT(target, getHostApiInfo);
-  NAN_EXPORT(target, getDeviceCount);
-  NAN_EXPORT(target, getDefaultInputDevice);
-  NAN_EXPORT(target, getDefaultOutputDevice);
-  NAN_EXPORT(target, getDeviceInfo);
-  NAN_EXPORT(target, openStream);
-  // NAN_EXPORT(target, openDefaultStream);
+//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
+NAN_METHOD(startStream) {
+  HandleScope scope;
+  PaError err;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  
+  // Start stream
+  err = Pa_StartStream(stream->streamPtr());
+  if (err != paNoError) {
+    printf("%s\n", "StartStream: ");
+    printf("%s\n", Pa_GetErrorText(err));
+    // ThrowError(Pa_GetErrorText(err));
+  }
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(err));  
 }
 
-NODE_MODULE(jsaudio, Init)
+NAN_METHOD(getStreamWriteAvailable) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  
+  // Start stream
+  retVal = Pa_GetStreamWriteAvailable(stream->streamPtr());
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
+}
+
+NAN_METHOD(writeStream) {
+  HandleScope scope;
+  long retVal;
+    
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+    
+  // Get the buffer data
+  TypedArrayContents<float> buf(info[1]);
+  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  
+  // Start stream
+  retVal = Pa_WriteStream(stream->streamPtr(), *buf, bufFrames);
+  
+  // Testing that params are set right
+  info.GetReturnValue().Set(New<Number>(retVal));  
+}

@@ -2,6 +2,8 @@
 
 // Setup
 const JsAudio = require('./lib/jsaudio')
+const JsAudioNative = require('./lib/jsaudio').JsAudioNative
+const JsPaStream = JsAudio.JsPaStream
 const formats = {
   paFloat32: 1,
   paInt32: 2,
@@ -12,7 +14,7 @@ const formats = {
   paCustomFormat: 65536,
   paNonInterleaved: 2147483648
 }
-const streamOpts = {
+var streamOpts = {
   input: {
     device: 1,
     channelCount: 2,
@@ -20,16 +22,18 @@ const streamOpts = {
     suggestedLatency: 0.09
   },
   output: {
-    device: 3,
+    device: 10,
     channelCount: 2,
     sampleFormat: formats.paFloat32,
     suggestedLatency: 0.09
   },
   sampleRate: 44100,
-  framesPerBuffer: 64,
+  framesPerBuffer: 4096,
   streamFlags: 0
 }
 
+var stream = new JsPaStream()
+streamOpts.stream = stream
 // Exports
 module.exports = JsAudio
 
@@ -48,6 +52,8 @@ jsAudio
   .on('get-default-output-device-done', console.log)
   .on('get-device-info-done', console.log)
   .on('open-stream-done', console.log)
+  .on('start-stream-done', console.log)
+  .on('get-stream-write-available-done', console.log)
 
 jsAudio.initialize()
 jsAudio.getVersion()
@@ -57,8 +63,30 @@ jsAudio.getHostApiInfo()
 jsAudio.getDeviceCount()
 jsAudio.getDefaultInputDevice()
 jsAudio.getDefaultOutputDevice()
-jsAudio.getDeviceInfo(0)
-jsAudio.getDeviceInfo(3)
-setTimeout(() => console.log('hep2'), 5000)
+jsAudio.getDeviceInfo(1)
+jsAudio.getDeviceInfo(10)
 jsAudio.openStream(streamOpts)
-setTimeout(() => console.log('hep2'), 10000)
+jsAudio.startStream(stream)
+
+var buffer
+setTimeout(() => {
+  var framesToWrite = 0,
+    phase = 0,
+    phaseIncrement = (2 * Math.PI * 80) / 44100.0;
+  while(1) {
+    framesToWrite = JsAudioNative.getStreamWriteAvailable(stream);
+    if(framesToWrite === 0)
+      continue;
+    console.log(framesToWrite);
+    buffer = new Float32Array(framesToWrite * 2);
+    for(var i = 0; i <= framesToWrite; i++){
+      buffer[i * 2] = Math.cos(phase) * 2 - 1;
+      buffer[i * 2 + 1] = Math.cos(phase * 2) * 2 - 1;
+
+      phase += phaseIncrement;
+    }
+
+    JsAudioNative.writeStream(stream, buffer);
+  }
+}, 1000)
+
