@@ -1,14 +1,14 @@
 {
   "name": "jsaudio",
-  "version": "0.0.2",
-  "description": "[WIP] JsAudio is (will be) to Node as PyAudio is to Python",
+  "version": "0.0.3",
+  "description": "[WIP] JsAudio is to Node / JS as PyAudio is to Python",
   "main": "index.js",
   "scripts": {
     "test": "test/test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/musocrat/jsaudio.git"
+    "url": "git+https://github.com/JsAudioOrg/jsaudio.git"
   },
   "keywords": [
     "portaudio",
@@ -23,9 +23,9 @@
   "author": "Andrew Carpenter",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/musocrat/jsaudio/issues"
+    "url": "https://github.com/JsAudioOrg/jsaudio/issues"
   },
-  "homepage": "https://github.com/musocrat/jsaudio#readme",
+  "homepage": "https://github.com/JsAudioOrg/jsaudio#readme",
   "dependencies": {
     "bindings": "^1.2.1",
     "nan": "^2.2.0",
