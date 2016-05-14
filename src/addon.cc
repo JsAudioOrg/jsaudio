@@ -16,12 +16,13 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, openStream);
   // NAN_EXPORT(target, openDefaultStream);
   NAN_EXPORT(target, startStream);
+  NAN_EXPORT(target, stopStream);
   NAN_EXPORT(target, getStreamWriteAvailable);
   NAN_EXPORT(target, getStreamReadAvailable);
   NAN_EXPORT(target, writeStream);
   NAN_EXPORT(target, readStream);
-    
-    
+
+
     JsPaStream::Init(target);
 }
 

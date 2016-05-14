@@ -14,15 +14,13 @@ LocalFunction jsStreamCb;
 /* BEGIN Initialization, termination, and utility */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#abed859482d156622d9332dff9b2d89da
 NAN_METHOD(initialize) {
-  PaError err = Pa_Initialize();
-  ThrowIfPaError(err);
+  ThrowIfPaError(Pa_Initialize());
   info.GetReturnValue().Set(true);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0db317604e916e8bd6098e60e6237221
 NAN_METHOD(terminate) {
-  PaError err = Pa_Terminate();
-  ThrowIfPaError(err);
+  ThrowIfPaError(Pa_Terminate());
   info.GetReturnValue().Set(true);
 }
 
@@ -132,13 +130,8 @@ NAN_METHOD(openStream) {
     NULL,
     NULL
   );
-  if (err != paNoError) {
-    printf("%s\n", "OpenStream: ");
-    printf("%s\n", Pa_GetErrorText(err));
-    // ThrowError(Pa_GetErrorText(err));
-  }
-  // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(err));
+  ThrowIfPaError(err);
+  info.GetReturnValue().Set(true);
 }
 
 /*
@@ -151,21 +144,23 @@ NAN_METHOD(openDefaultStream) {
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
 NAN_METHOD(startStream) {
   HandleScope scope;
-  PaError err;
-
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-
   // Start stream
-  err = Pa_StartStream(stream->streamPtr());
-  if (err != paNoError) {
-    printf("%s\n", "StartStream: ");
-    printf("%s\n", Pa_GetErrorText(err));
-    // ThrowError(Pa_GetErrorText(err));
-  }
-  // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(err));
+  ThrowIfPaError(Pa_StartStream(stream->streamPtr()));
+  info.GetReturnValue().Set(true);
+}
+
+//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
+NAN_METHOD(stopStream) {
+  HandleScope scope;
+  // Get stream object
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Start stream
+  ThrowIfPaError(Pa_StopStream(stream->streamPtr()));
+  info.GetReturnValue().Set(true);
 }
 
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61

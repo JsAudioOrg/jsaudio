@@ -20,6 +20,7 @@ NAN_METHOD(getDefaultOutputDevice);
 NAN_METHOD(getDeviceInfo);
 NAN_METHOD(openStream);
 NAN_METHOD(startStream);
+NAN_METHOD(stopStream);
 NAN_METHOD(getStreamWriteAvailable);
 NAN_METHOD(getStreamReadAvailable);
 NAN_METHOD(writeStream);
