@@ -1,5 +1,25 @@
 #include "helpers.h"
 
+// PortAudio helpers
+void ThrowIfPaError (PaError err) {
+  if (err != paNoError) {
+    ThrowError(Pa_GetErrorText(err));
+  }
+}
+
+void ThrowIfPaErrorInt (int err) {
+  if (err < 0) {
+    ThrowError(Pa_GetErrorText(err));
+  }
+}
+
+void ThrowIfPaNoDevice (PaDeviceIndex dvcIndex) {
+  if (dvcIndex == paNoDevice) {
+    ThrowError(ToLocString("No available devices"));
+  }
+}
+
+// Cast helpers
 int LocalizeInt (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->Uint32Value();
 }
