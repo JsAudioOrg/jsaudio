@@ -1,7 +1,7 @@
 'use strict'
 
 // Setup
-const JsAudioExports = require('./../lib/jsaudio')
+const JsAudioExports = require('./lib/jsaudio')
 const JsAudio = JsAudioExports.JsAudioNative
 const JsPaStream = JsAudioExports.JsPaStream
 
