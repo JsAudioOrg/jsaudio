@@ -5,6 +5,11 @@ const JsAudioExports = require('./lib/jsaudio')
 const JsAudio = JsAudioExports.JsAudioNative
 const JsPaStream = JsAudioExports.JsPaStream
 
+// Exports
+module.exports = JsAudioExports
+
+JsAudio.initialize()
+
 const formats = {
   paFloat32: 1,
   paInt32: 2,
@@ -17,13 +22,13 @@ const formats = {
 }
 let streamOpts = {
   input: {
-    device: 1,
+    device: JsAudio.getDefaultInputDevice(),
     channelCount: 2,
     sampleFormat: formats.paFloat32,
     suggestedLatency: 0.003
   },
   output: {
-    device: 3,
+    device: JsAudio.getDefaultOutputDevice(),
     channelCount: 2,
     sampleFormat: formats.paFloat32,
     suggestedLatency: 0.003
@@ -35,8 +40,8 @@ let streamOpts = {
 
 let stream = new JsPaStream()
 streamOpts.stream = stream
-// Exports
-module.exports = JsAudio
+JsAudio.openStream(streamOpts)
+JsAudio.startStream(stream)
 
 let buffer
 setTimeout(() => {
