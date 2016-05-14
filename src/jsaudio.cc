@@ -15,17 +15,15 @@ LocalFunction jsStreamCb;
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#abed859482d156622d9332dff9b2d89da
 NAN_METHOD(initialize) {
   PaError err = Pa_Initialize();
-  if (err != paNoError) {
-    ThrowError(Pa_GetErrorText(err));
-  }
+  ThrowIfPaError(err);
+  info.GetReturnValue().Set(true);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0db317604e916e8bd6098e60e6237221
 NAN_METHOD(terminate) {
   PaError err = Pa_Terminate();
-  if (err != paNoError) {
-    ThrowError(Pa_GetErrorText(err));
-  }
+  ThrowIfPaError(err);
+  info.GetReturnValue().Set(true);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a66da08bcf908e0849c62a6b47f50d7b4
@@ -36,19 +34,27 @@ NAN_METHOD(getVersion) {
 /* BEGIN Host APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a19dbdb7c8702e3f4bfc0cdb99dac3dd9
 NAN_METHOD(getHostApiCount) {
-  info.GetReturnValue().Set(Pa_GetHostApiCount());
+  int hostApiCount = Pa_GetHostApiCount();
+  ThrowIfPaErrorInt(hostApiCount);
+  info.GetReturnValue().Set(hostApiCount);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ae55c77f9b7e3f8eb301a6f1c0e2347ac
 NAN_METHOD(getDefaultHostApi) {
-  info.GetReturnValue().Set(Pa_GetDefaultHostApi());
+  int api = Pa_GetDefaultHostApi();
+  ThrowIfPaErrorInt(api);
+  info.GetReturnValue().Set(api);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7c650aede88ea553066bab9bbe97ea90
 NAN_METHOD(getHostApiInfo) {
   HandleScope scope;
   int api = info[0].IsEmpty() ? Pa_GetDefaultHostApi() : info[0]->Uint32Value();
+  ThrowIfPaErrorInt(api);
   const PaHostApiInfo* hai = Pa_GetHostApiInfo(api);
+  if (hai == NULL) {
+    ThrowError(ToLocString("Unable to retrieve Host API info"));
+  }
   LocalObject obj = New<Object>();
   obj->Set(ToLocString("apiIndex"), New<Number>(api));
   HostApiInfoToLocalObject(obj, hai);
@@ -58,26 +64,36 @@ NAN_METHOD(getHostApiInfo) {
 /* BEGIN Device APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#acfe4d3c5ec1a343f459981bfa2057f8d
 NAN_METHOD(getDeviceCount) {
-  info.GetReturnValue().Set(Pa_GetDeviceCount());
+  int dvcCount = Pa_GetDeviceCount();
+  ThrowIfPaErrorInt(dvcCount);
+  info.GetReturnValue().Set(dvcCount);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#abf9f2f82da95553d5adb929af670f74b
 NAN_METHOD(getDefaultInputDevice) {
-  info.GetReturnValue().Set(Pa_GetDefaultInputDevice());
+  PaDeviceIndex dvcIndex = Pa_GetDefaultInputDevice();
+  ThrowIfPaNoDevice(dvcIndex);
+  info.GetReturnValue().Set(dvcIndex);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#adc955dfab007624000695c48d4f876dc
 NAN_METHOD(getDefaultOutputDevice) {
-  info.GetReturnValue().Set(Pa_GetDefaultOutputDevice());
+  PaDeviceIndex dvcIndex = Pa_GetDefaultOutputDevice();
+  ThrowIfPaNoDevice(dvcIndex);
+  info.GetReturnValue().Set(dvcIndex);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ac7d8e091ffc1d1d4a035704660e117eb
 NAN_METHOD(getDeviceInfo) {
   HandleScope scope;
-  int dvc = info[0].IsEmpty()
+  PaDeviceIndex dvc = info[0].IsEmpty()
     ? Pa_GetDefaultInputDevice()
     : info[0]->Uint32Value();
+  ThrowIfPaNoDevice(dvc);
   const PaDeviceInfo* di = Pa_GetDeviceInfo(dvc);
+  if (di == NULL) {
+    ThrowError(ToLocString("Unable to retrieve device info"));
+  }
   LocalObject obj = New<Object>();
   obj->Set(ToLocString("deviceIndex"), New<Number>(dvc));
   DeviceInfoToLocalObject(obj, di);
@@ -88,14 +104,14 @@ NAN_METHOD(getDeviceInfo) {
 NAN_METHOD(openStream) {
   HandleScope scope;
   PaError err;
-    
+
   // Get params objects
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
-    
+
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
-    
+
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
   PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
   // Get stream options
@@ -104,7 +120,7 @@ NAN_METHOD(openStream) {
     Get(obj, ToLocString("framesPerBuffer")));
   PaStreamFlags streamFlags = static_cast<PaStreamFlags>(
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
-  
+
   // Start stream
   err = Pa_OpenStream(
     stream->streamPtrRef(),
@@ -136,11 +152,11 @@ NAN_METHOD(openDefaultStream) {
 NAN_METHOD(startStream) {
   HandleScope scope;
   PaError err;
-    
+
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  
+
   // Start stream
   err = Pa_StartStream(stream->streamPtr());
   if (err != paNoError) {
@@ -149,77 +165,77 @@ NAN_METHOD(startStream) {
     // ThrowError(Pa_GetErrorText(err));
   }
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(err));  
+  info.GetReturnValue().Set(New<Number>(err));
 }
 
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
 NAN_METHOD(getStreamWriteAvailable) {
   HandleScope scope;
   long retVal;
-    
+
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  
+
   // Start stream
   retVal = Pa_GetStreamWriteAvailable(stream->streamPtr());
-  
+
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(retVal));  
+  info.GetReturnValue().Set(New<Number>(retVal));
 }
 
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ad04c33f045fa58d7b705b56b1fd3e816
 NAN_METHOD(getStreamReadAvailable) {
   HandleScope scope;
   long retVal;
-    
+
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  
+
   // Start stream
   retVal = Pa_GetStreamReadAvailable(stream->streamPtr());
-  
+
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(retVal));  
+  info.GetReturnValue().Set(New<Number>(retVal));
 }
 
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a075a6efb503a728213bdae24347ed27d
 NAN_METHOD(writeStream) {
   HandleScope scope;
   long retVal;
-    
+
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-    
+
   // Get the buffer data
   TypedArrayContents<float> buf(info[1]);
   unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
-  
+
   // Start stream
   retVal = Pa_WriteStream(stream->streamPtr(), *buf, bufFrames);
-  
+
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(retVal));  
+  info.GetReturnValue().Set(New<Number>(retVal));
 }
 
 //http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0b62d4b74b5d3d88368e9e4c0b8b2dc7
 NAN_METHOD(readStream) {
   HandleScope scope;
   long retVal;
-    
+
   // Get stream object
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-    
+
   // Get the buffer data
   TypedArrayContents<float> buf(info[1]);
   unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
-  
+
   // Start stream
   retVal = Pa_ReadStream(stream->streamPtr(), *buf, bufFrames);
-  
+
   // Testing that params are set right
-  info.GetReturnValue().Set(New<Number>(retVal));  
+  info.GetReturnValue().Set(New<Number>(retVal));
 }
