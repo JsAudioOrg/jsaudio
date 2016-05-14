@@ -3,10 +3,11 @@
 const test = require('ava')
 const JsAudioExports = require('./../lib/jsaudio')
 const JsAudio = JsAudioExports.JsAudioNative
-// const JsPaStream = JsAudio.JsPaStream
+const JsPaStream = JsAudio.JsPaStream
+let initialized = JsAudio.initialize()
 
 test('JsAudio.initialize', (t) => {
-  return t.truthy(JsAudio.initialize())
+  return t.truthy(initialized)
 })
 test('JsAudio.getVersion', (t) => {
   return t.truthy(Number.isInteger(JsAudio.getVersion()))
@@ -41,6 +42,10 @@ test('JsAudio.getDeviceInfo', (t) => {
     dvcInfo.hasOwnProperty('deviceIndex') &&
     dvcInfo.deviceIndex >= 0
   )
+})
+test('new JsPaStream()', (t) => {
+  let stream = new JsPaStream()
+  return t.truthy(stream instanceof JsPaStream)
 })
 test.todo('JsAudio.openStream')
 test.todo('JsAudio.openDefaultStream')
