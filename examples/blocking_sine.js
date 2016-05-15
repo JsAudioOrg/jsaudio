@@ -13,9 +13,11 @@ http://portaudio.com/docs/v19-doxydocs/paex__write__sine_8c_source.html
 */
 
 // Setup
-const numSeconds = 5
-const sampleRate = 44100
-const framesPerBuffer = 1024
+const numPlays = 8
+const numSeconds = 1
+const sampleRate = 48000
+const channels = 2
+const framesPerBuffer = 8192
 const streamFlags = 0
 const pi = 3.14159265
 const tableSize = 200
@@ -34,7 +36,7 @@ function blockingSine () {
   // initialize stream instance
   let stream = new JsPaStream()
   // stereo output buffer
-  let buffer = new Float32Array(framesPerBuffer * 2)
+  let buffer = new Float32Array(framesPerBuffer * channels)
   // sine wavetable
   let sine = new Float32Array(tableSize)
   // setup phase
@@ -64,13 +66,13 @@ function blockingSine () {
     streamFlags,
     input: {
       device: defaultInputDevice,
-      channelCount: 2,
+      channelCount: channels,
       sampleFormat: formats.paFloat32,
       suggestedLatency: inputInfo.defaultLowOutputLatency || 0.003
     },
     output: {
       device: defaultOutputDevice,
-      channelCount: 2,
+      channelCount: channels,
       sampleFormat: formats.paFloat32,
       suggestedLatency: outputInfo.defaultLowOutputLatency || 0.003
     }
@@ -78,9 +80,9 @@ function blockingSine () {
   // open stream with options
   JsAudio.openStream(streamOpts)
   // log what we're doing
-  console.log('Play 3 times, higher each time.\n')
+  console.log(`Play ${numPlays} times, higher each time.\n`)
   // start playing
-  for (let k = 0; k < 3; ++k) {
+  for (let k = 0; k < numPlays; ++k) {
     setTimeout(() => {
       // start stream
       JsAudio.startStream(stream)
@@ -91,8 +93,8 @@ function blockingSine () {
 
       for (let i = 0; i < bufferCount; i++) {
         for (let j = 0; j < framesPerBuffer; j++) {
-          buffer[j * i] = sine[phase.left]
-          buffer[j * i + 1] = sine[phase.right]
+          buffer[j * i] = sine[phase.left] * 0.05
+          buffer[j * i + 1] = sine[phase.right] * 0.05
           phase.left += increment.left
           if (phase.left >= tableSize) phase.left -= tableSize
           phase.right += increment.right
@@ -102,10 +104,18 @@ function blockingSine () {
       }
       JsAudio.stopStream(stream)
 
-      increment.left = increment.left + 1
-      increment.right = increment.right + 1
+      if (k < (numPlays / 2) - 1) {
+        increment.left++
+        increment.right++
+      } else {
+        increment.left--
+        increment.right--
+      }
       // if we're done terminate PortAudio
-      if (k === 3) JsAudio.terminate()
+      if (k === (numPlays - 1)) {
+        console.log('Done.')
+        JsAudio.terminate()
+      }
     },
     1000)
   }
