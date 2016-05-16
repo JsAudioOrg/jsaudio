@@ -101,15 +101,13 @@ NAN_METHOD(getDeviceInfo) {
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(openStream) {
   HandleScope scope;
-  PaError err;
-
   // Get params objects
   LocalObject obj = info[0]->ToObject();
-  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(ToLocObject(Get(obj, ToLocString("stream"))));
-
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
+    ToLocObject(Get(obj, ToLocString("stream"))));
+  // Prepare in / out params
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
-
   PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
   PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
   // Get stream options
@@ -118,9 +116,8 @@ NAN_METHOD(openStream) {
     Get(obj, ToLocString("framesPerBuffer")));
   PaStreamFlags streamFlags = static_cast<PaStreamFlags>(
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
-
   // Start stream
-  err = Pa_OpenStream(
+  PaError err = Pa_OpenStream(
     stream->streamPtrRef(),
     &paramsIn,
     &paramsOut,
@@ -134,14 +131,48 @@ NAN_METHOD(openStream) {
   info.GetReturnValue().Set(true);
 }
 
-/*
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0a12735ac191200f696a43b87667b714
 NAN_METHOD(openDefaultStream) {
-  // ToDo: implement this
+  HandleScope scope;
+  // Get params objects
+  LocalObject obj = info[0]->ToObject();
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
+    ToLocObject(Get(obj, ToLocString("stream"))));
+  // Get stream options
+  int inputChannels = LocalizeInt(Get(obj, ToLocString("numInputChannels")));
+  int outputChannels = LocalizeInt(Get(obj, ToLocString("numOutputChannels")));
+  double sampleRate = LocalizeDouble(Get(obj, ToLocString("sampleRate")));
+  PaSampleFormat sampleFormat = static_cast<PaSampleFormat>(LocalizeULong(
+    Get(obj, ToLocString("sampleFormat"))));
+  unsigned long framesPerBuffer = LocalizeULong(
+    Get(obj, ToLocString("framesPerBuffer")));
+  // Start stream
+  PaError err = Pa_OpenDefaultStream(
+    stream->streamPtrRef(),
+    inputChannels,
+    outputChannels,
+    sampleFormat,
+    sampleRate,
+    framesPerBuffer,
+    NULL,
+    NULL
+  );
+  ThrowIfPaError(err);
+  info.GetReturnValue().Set(true);
 }
-*/
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a92f56f88cbd14da0e8e03077e835d104
+NAN_METHOD(closeStream) {
+  HandleScope scope;
+  // Get stream object
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Stop stream
+  ThrowIfPaError(Pa_CloseStream(stream->streamPtr()));
+  info.GetReturnValue().Set(true);
+}
+
+
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
 NAN_METHOD(startStream) {
   HandleScope scope;
   // Get stream object
@@ -151,7 +182,7 @@ NAN_METHOD(startStream) {
   info.GetReturnValue().Set(true);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
 NAN_METHOD(stopStream) {
   HandleScope scope;
   // Get stream object
@@ -161,7 +192,7 @@ NAN_METHOD(stopStream) {
   info.GetReturnValue().Set(true);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
 NAN_METHOD(getStreamWriteAvailable) {
   HandleScope scope;
   // Get stream object
@@ -171,7 +202,7 @@ NAN_METHOD(getStreamWriteAvailable) {
   info.GetReturnValue().Set(true);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ad04c33f045fa58d7b705b56b1fd3e816
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ad04c33f045fa58d7b705b56b1fd3e816
 NAN_METHOD(getStreamReadAvailable) {
   HandleScope scope;
   // Get stream object
@@ -181,7 +212,7 @@ NAN_METHOD(getStreamReadAvailable) {
   info.GetReturnValue().Set(true);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a075a6efb503a728213bdae24347ed27d
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a075a6efb503a728213bdae24347ed27d
 NAN_METHOD(writeStream) {
   HandleScope scope;
   // Get stream object

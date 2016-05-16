@@ -14,7 +14,8 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, getDefaultOutputDevice);
   NAN_EXPORT(target, getDeviceInfo);
   NAN_EXPORT(target, openStream);
-  // NAN_EXPORT(target, openDefaultStream);
+  NAN_EXPORT(target, openDefaultStream);
+  NAN_EXPORT(target, closeStream);
   NAN_EXPORT(target, startStream);
   NAN_EXPORT(target, stopStream);
   NAN_EXPORT(target, getStreamWriteAvailable);

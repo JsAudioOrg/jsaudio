@@ -55,30 +55,17 @@ function blockingSine () {
   // initialize PortAudio
   JsAudio.initialize()
   // setup stream options
-  let defaultInputDevice = JsAudio.getDefaultInputDevice()
-  let defaultOutputDevice = JsAudio.getDefaultOutputDevice()
-  let inputInfo = JsAudio.getDeviceInfo(defaultInputDevice)
-  let outputInfo = JsAudio.getDeviceInfo(defaultOutputDevice)
   let streamOpts = {
     stream,
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    input: {
-      device: defaultInputDevice,
-      channelCount: channels,
-      sampleFormat: formats.paFloat32,
-      suggestedLatency: inputInfo.defaultLowOutputLatency || 0.003
-    },
-    output: {
-      device: defaultOutputDevice,
-      channelCount: channels,
-      sampleFormat: formats.paFloat32,
-      suggestedLatency: outputInfo.defaultLowOutputLatency || 0.003
-    }
+    sampleFormat: formats.paFloat32,
+    numInputChannels: channels,
+    numOutputChannels: channels
   }
   // open stream with options
-  JsAudio.openStream(streamOpts)
+  JsAudio.openDefaultStream(streamOpts)
   // log what we're doing
   console.log(`Play ${numPlays} times, higher each time.\n`)
   // start playing
@@ -90,7 +77,7 @@ function blockingSine () {
       console.log(`Play for ${numSeconds} seconds.\n`)
       // set buffer count
       let bufferCount = ((numSeconds * sampleRate) / framesPerBuffer)
-
+      // loop over fraames, inserting data and writing to stream
       for (let i = 0; i < bufferCount; i++) {
         for (let j = 0; j < framesPerBuffer; j++) {
           buffer[j * i] = sine[phase.left] * 0.05
@@ -103,7 +90,6 @@ function blockingSine () {
         JsAudio.writeStream(stream, buffer, framesPerBuffer)
       }
       JsAudio.stopStream(stream)
-
       if (k < (numPlays / 2) - 1) {
         increment.left++
         increment.right++
@@ -114,6 +100,7 @@ function blockingSine () {
       // if we're done terminate PortAudio
       if (k === (numPlays - 1)) {
         console.log('Done.')
+        JsAudio.closeStream(stream)
         JsAudio.terminate()
       }
     },
