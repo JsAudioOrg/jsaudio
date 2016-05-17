@@ -1,7 +1,7 @@
 {
   "name": "jsaudio",
-  "version": "0.0.3",
-  "description": "[WIP] JsAudio is to Node / JS as PyAudio is to Python",
+  "version": "0.0.4",
+  "description": "JsAudio is to Node / JS as PyAudio is to Python",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/ava test/test.js"
