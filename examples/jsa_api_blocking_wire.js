@@ -12,7 +12,7 @@ http://portaudio.com/docs/v19-doxydocs/paex__read__write__wire_8c_source.html
 
 // Setup
 const numSeconds = 5
-const jsAudio = new JsAudio({sampleRate: 48000, framesPerBuffer: 8192})
+const jsAudio = new JsAudio()
 
 function blockingWire () {
   // log what we're doing
@@ -21,9 +21,9 @@ function blockingWire () {
     `SR = ${jsAudio.sampleRate}, BufSize = ${jsAudio.framesPerBuffer}\n`
   )
   // open stream with options
-  jsAudio.openDefaultStream()
+  jsAudio.openStream()
   // start stream
-  jsAudio.startStream(jsAudio.stream)
+  jsAudio.startStream()
   // log what we're doing
   console.log(`Pass input to output for ${numSeconds} seconds.\n`)
   // set buffer count
@@ -33,9 +33,9 @@ function blockingWire () {
     jsAudio.writeStream()
     jsAudio.readStream()
   }
-  jsAudio.stopStream(jsAudio.stream)
+  jsAudio.stopStream()
   console.log('Done.')
-  jsAudio.closeStream(jsAudio.stream)
+  jsAudio.closeStream()
   jsAudio.terminate()
 }
 
