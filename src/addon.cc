@@ -30,6 +30,8 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, stopStream);
   NAN_EXPORT(target, abortStream);
   NAN_EXPORT(target, isStreamStopped);
+  NAN_EXPORT(target, isStreamActive);
+  NAN_EXPORT(target, getStreamInfo);
   NAN_EXPORT(target, getStreamWriteAvailable);
   NAN_EXPORT(target, getStreamReadAvailable);
   NAN_EXPORT(target, writeStream);
