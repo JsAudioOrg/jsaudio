@@ -243,6 +243,16 @@ NAN_METHOD(closeStream) {
   info.GetReturnValue().Set(true);
 }
 
+// // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#aa11e7b06b2cde8621551f5d527965838
+// NAN_METHOD(setStreamFinishedCallback) {
+//   HandleScope scope;
+//   // Get stream object
+//   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+//   // ToDo: implement this
+//   // PaError Pa_SetStreamFinishedCallback(PaStream *stream, PaStreamFinishedCallback *streamFinishedCallback);
+//   info.GetReturnValue().Set(true);
+// }
+
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a7432aadd26c40452da12fa99fc1a047b
 NAN_METHOD(startStream) {

@@ -31,6 +31,7 @@ NAN_METHOD(whyIsFormatUnsupported);
 NAN_METHOD(openStream);
 NAN_METHOD(openDefaultStream);
 NAN_METHOD(closeStream);
+// NAN_METHOD(setStreamFinishedCallback);
 NAN_METHOD(startStream);
 NAN_METHOD(stopStream);
 NAN_METHOD(abortStream);
