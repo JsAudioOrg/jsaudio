@@ -5,18 +5,21 @@ void ThrowIfPaError (PaError err) {
   if (err != paNoError) {
     ThrowError(Pa_GetErrorText(err));
   }
+  return err;
 }
 
 void ThrowIfPaErrorInt (int err) {
   if (err < 0) {
     ThrowError(Pa_GetErrorText(err));
   }
+  return err;
 }
 
 void ThrowIfPaNoDevice (PaDeviceIndex dvcIndex) {
   if (dvcIndex == paNoDevice) {
     ThrowError(ToLocString("No available devices"));
   }
+  return dvcIndex;
 }
 
 // Cast helpers
