@@ -330,23 +330,16 @@ NAN_METHOD(getStreamCpuLoad) {
   info.GetReturnValue().Set(cpu);
 }
 
-// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
-NAN_METHOD(getStreamWriteAvailable) {
+//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0b62d4b74b5d3d88368e9e4c0b8b2dc7
+NAN_METHOD(readStream) {
   HandleScope scope;
   // Get stream object
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  // Check that write stream is ready
-  ThrowIfPaErrorInt(Pa_GetStreamWriteAvailable(stream->streamPtr()));
-  info.GetReturnValue().Set(true);
-}
-
-// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ad04c33f045fa58d7b705b56b1fd3e816
-NAN_METHOD(getStreamReadAvailable) {
-  HandleScope scope;
-  // Get stream object
-  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  // Check that read stream is ready
-  ThrowIfPaErrorInt(Pa_GetStreamReadAvailable(stream->streamPtr()));
+  // Get the buffer data
+  TypedArrayContents<float> buf(info[1]);
+  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  // Start stream
+  ThrowIfPaError(Pa_ReadStream(stream->streamPtr(), *buf, bufFrames));
   info.GetReturnValue().Set(true);
 }
 
@@ -363,15 +356,30 @@ NAN_METHOD(writeStream) {
   info.GetReturnValue().Set(true);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0b62d4b74b5d3d88368e9e4c0b8b2dc7
-NAN_METHOD(readStream) {
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ad04c33f045fa58d7b705b56b1fd3e816
+NAN_METHOD(getStreamReadAvailable) {
   HandleScope scope;
   // Get stream object
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  // Get the buffer data
-  TypedArrayContents<float> buf(info[1]);
-  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
-  // Start stream
-  ThrowIfPaError(Pa_ReadStream(stream->streamPtr(), *buf, bufFrames));
+  // Check that read stream is ready
+  ThrowIfPaErrorInt(Pa_GetStreamReadAvailable(stream->streamPtr()));
   info.GetReturnValue().Set(true);
+}
+
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
+NAN_METHOD(getStreamWriteAvailable) {
+  HandleScope scope;
+  // Get stream object
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Check that write stream is ready
+  ThrowIfPaErrorInt(Pa_GetStreamWriteAvailable(stream->streamPtr()));
+  info.GetReturnValue().Set(true);
+}
+
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a541ed0b734df2631bc4c229acf92abc1
+NAN_METHOD(getSampleSize) {
+  unsigned long format = info[0]->Uint32Value();
+  // Get stream time
+  PaError size = ThrowIfPaError(Pa_GetSampleSize(format));
+  info.GetReturnValue().Set(size);
 }

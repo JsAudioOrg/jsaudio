@@ -34,10 +34,11 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, getStreamInfo);
   NAN_EXPORT(target, getStreamTime);
   NAN_EXPORT(target, getStreamCpuLoad);
-  NAN_EXPORT(target, getStreamWriteAvailable);
-  NAN_EXPORT(target, getStreamReadAvailable);
-  NAN_EXPORT(target, writeStream);
   NAN_EXPORT(target, readStream);
+  NAN_EXPORT(target, writeStream);
+  NAN_EXPORT(target, getStreamReadAvailable);
+  NAN_EXPORT(target, getStreamWriteAvailable);
+  NAN_EXPORT(target, getSampleSize);
 
   JsPaStream::Init(target);
 }

@@ -39,9 +39,10 @@ NAN_METHOD(isStreamActive);
 NAN_METHOD(getStreamInfo);
 NAN_METHOD(getStreamTime);
 NAN_METHOD(getStreamCpuLoad);
-NAN_METHOD(getStreamWriteAvailable);
-NAN_METHOD(getStreamReadAvailable);
-NAN_METHOD(writeStream);
 NAN_METHOD(readStream);
+NAN_METHOD(writeStream);
+NAN_METHOD(getStreamReadAvailable);
+NAN_METHOD(getStreamWriteAvailable);
+NAN_METHOD(getSampleSize);
 
 #endif
