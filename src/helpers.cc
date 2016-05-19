@@ -43,6 +43,12 @@ LocalObject ToLocObject (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->ToObject();
 }
 
+LocalString ConstCharPointerToLocString (const char* constCharPointer) {
+  if (constCharPointer == NULL) return New("").ToLocalChecked();
+  std::string str(constCharPointer);
+  return New(str).ToLocalChecked();
+}
+
 void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai) {
   obj->Set(
     ToLocString("type"), New<Number>(hai->type));
