@@ -4,9 +4,9 @@
 #include "jsaudio.h"
 
 // PortAudio helpers
-void ThrowIfPaError (PaError err);
-void ThrowIfPaErrorInt (int err);
-void ThrowIfPaNoDevice (PaDeviceIndex dvcIndex);
+PaError ThrowIfPaError (PaError err);
+int ThrowIfPaErrorInt (int err);
+PaDeviceIndex ThrowIfPaNoDevice (PaDeviceIndex dvcIndex);
 // Cast helpers
 int LocalizeInt (MaybeLocalValue lvIn);
 double LocalizeDouble (MaybeLocalValue lvIn);

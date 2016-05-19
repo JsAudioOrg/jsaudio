@@ -1,21 +1,21 @@
 #include "helpers.h"
 
 // PortAudio helpers
-void ThrowIfPaError (PaError err) {
+PaError ThrowIfPaError (PaError err) {
   if (err != paNoError) {
     ThrowError(Pa_GetErrorText(err));
   }
   return err;
 }
 
-void ThrowIfPaErrorInt (int err) {
+int ThrowIfPaErrorInt (int err) {
   if (err < 0) {
     ThrowError(Pa_GetErrorText(err));
   }
   return err;
 }
 
-void ThrowIfPaNoDevice (PaDeviceIndex dvcIndex) {
+PaDeviceIndex ThrowIfPaNoDevice (PaDeviceIndex dvcIndex) {
   if (dvcIndex == paNoDevice) {
     ThrowError(ToLocString("No available devices"));
   }
