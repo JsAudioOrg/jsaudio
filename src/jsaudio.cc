@@ -310,6 +310,16 @@ NAN_METHOD(getStreamInfo) {
   info.GetReturnValue().Set(obj);
 }
 
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a2b3fb60e6949f37f7f134105ff425749
+NAN_METHOD(getStreamTime) {
+  HandleScope scope;
+  // Get stream object
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Get stream time
+  double streamTime = Pa_GetStreamTime(stream->streamPtr());
+  info.GetReturnValue().Set(streamTime);
+}
+
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
 NAN_METHOD(getStreamWriteAvailable) {
   HandleScope scope;
