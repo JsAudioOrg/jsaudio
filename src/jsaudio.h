@@ -14,6 +14,7 @@ NAN_METHOD(getVersion);
 NAN_METHOD(getHostApiCount);
 NAN_METHOD(getDefaultHostApi);
 NAN_METHOD(getHostApiInfo);
+NAN_METHOD(getLastHostErrorInfo);
 NAN_METHOD(getDeviceCount);
 NAN_METHOD(getDefaultInputDevice);
 NAN_METHOD(getDefaultOutputDevice);

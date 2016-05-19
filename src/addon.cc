@@ -9,6 +9,7 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, getHostApiCount);
   NAN_EXPORT(target, getDefaultHostApi);
   NAN_EXPORT(target, getHostApiInfo);
+  NAN_EXPORT(target, getLastHostErrorInfo);
   NAN_EXPORT(target, getDeviceCount);
   NAN_EXPORT(target, getDefaultInputDevice);
   NAN_EXPORT(target, getDefaultOutputDevice);
