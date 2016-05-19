@@ -264,6 +264,16 @@ NAN_METHOD(stopStream) {
   info.GetReturnValue().Set(true);
 }
 
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a138e57abde4e833c457b64895f638a25
+NAN_METHOD(abortStream) {
+  HandleScope scope;
+  // Get stream object
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Abort stream
+  ThrowIfPaError(Pa_AbortStream(stream->streamPtr()));
+  info.GetReturnValue().Set(true);
+}
+
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a25595acf48733ec32045aa189c3caa61
 NAN_METHOD(getStreamWriteAvailable) {
   HandleScope scope;

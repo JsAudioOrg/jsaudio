@@ -33,6 +33,7 @@ NAN_METHOD(openDefaultStream);
 NAN_METHOD(closeStream);
 NAN_METHOD(startStream);
 NAN_METHOD(stopStream);
+NAN_METHOD(abortStream);
 NAN_METHOD(getStreamWriteAvailable);
 NAN_METHOD(getStreamReadAvailable);
 NAN_METHOD(writeStream);
