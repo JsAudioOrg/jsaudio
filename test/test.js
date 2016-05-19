@@ -30,6 +30,7 @@ test('JsAudioNative.getHostApiInfo', (t) => {
 })
 test.todo('JsAudioNative.getLastHostErrorInfo')
 test.todo('JsAudioNative.hostApiTypeIdToHostApiIndex')
+test.todo('JsAudioNative.hostApiDeviceIndexToDeviceIndex')
 test('JsAudioNative.getDeviceCount', (t) => {
   return t.truthy(Number.isInteger(JsAudioNative.getDeviceCount()))
 })
