@@ -71,6 +71,16 @@ NAN_METHOD(getLastHostErrorInfo) {
   info.GetReturnValue().Set(obj);
 }
 
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a081c3975126d20b4226facfb7ba0620f
+NAN_METHOD(hostApiTypeIdToHostApiIndex) {
+  HandleScope scope;
+  int api = info[0].IsEmpty() ? Pa_GetDefaultHostApi() : info[0]->Uint32Value();
+  ThrowIfPaErrorInt(api);
+  int index = Pa_HostApiTypeIdToHostApiIndex(static_cast<PaHostApiTypeId>(api));
+  ThrowIfPaErrorInt(index);
+  info.GetReturnValue().Set(index);
+}
+
 /* BEGIN Device APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#acfe4d3c5ec1a343f459981bfa2057f8d
 NAN_METHOD(getDeviceCount) {

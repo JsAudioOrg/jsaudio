@@ -1,42 +1,48 @@
 'use strict'
 
 const test = require('ava')
-const JsAudioExports = require('./../lib/jsaudio')
-const JsAudio = JsAudioExports.JsAudioNative
+const JsAudio = require('./../lib/jsaudio')
+const JsAudioNative = JsAudio.JsAudioNative
 const JsPaStream = JsAudio.JsPaStream
-let initialized = JsAudio.initialize()
+let initialized = JsAudioNative.initialize()
 
-test('JsAudio.initialize', (t) => {
+test('JsAudioNative.initialize', (t) => {
   return t.truthy(initialized)
 })
-test('JsAudio.getVersion', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getVersion()))
+test('JsAudioNative.getVersion', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getVersion()))
 })
-test('JsAudio.getHostApiCount', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getHostApiCount()))
+test('JsAudioNative.getHostApiCount', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getHostApiCount()))
 })
-test('JsAudio.getDefaultHostApi', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getDefaultHostApi()))
+test('JsAudioNative.getDefaultHostApi', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getDefaultHostApi()))
 })
-test('JsAudio.getHostApiInfo', (t) => {
-  let hostApiInfo = JsAudio.getHostApiInfo(JsAudio.getDefaultHostApi())
+test('JsAudioNative.getHostApiInfo', (t) => {
+  let hostApiInfo = JsAudioNative.getHostApiInfo(
+    JsAudioNative.getDefaultHostApi()
+  )
   return t.truthy(
     hostApiInfo &&
     hostApiInfo.hasOwnProperty('apiIndex') &&
     hostApiInfo.apiIndex >= 0
   )
 })
-test('JsAudio.getDeviceCount', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getDeviceCount()))
+test.todo('JsAudioNative.getLastHostErrorInfo')
+test.todo('JsAudioNative.hostApiTypeIdToHostApiIndex')
+test('JsAudioNative.getDeviceCount', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getDeviceCount()))
 })
-test('JsAudio.getDefaultInputDevice', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getDefaultInputDevice()))
+test('JsAudioNative.getDefaultInputDevice', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getDefaultInputDevice()))
 })
-test('JsAudio.getDefaultOutputDevice', (t) => {
-  return t.truthy(Number.isInteger(JsAudio.getDefaultOutputDevice()))
+test('JsAudioNative.getDefaultOutputDevice', (t) => {
+  return t.truthy(Number.isInteger(JsAudioNative.getDefaultOutputDevice()))
 })
-test('JsAudio.getDeviceInfo', (t) => {
-  let dvcInfo = JsAudio.getDeviceInfo(JsAudio.getDefaultInputDevice())
+test('JsAudioNative.getDeviceInfo', (t) => {
+  let dvcInfo = JsAudioNative.getDeviceInfo(
+    JsAudioNative.getDefaultInputDevice()
+  )
   return t.truthy(
     dvcInfo &&
     dvcInfo.hasOwnProperty('deviceIndex') &&
@@ -47,13 +53,13 @@ test('new JsPaStream()', (t) => {
   let stream = new JsPaStream()
   return t.truthy(stream instanceof JsPaStream)
 })
-test.todo('JsAudio.openStream')
-test.todo('JsAudio.openDefaultStream')
-test.todo('JsAudio.startStream')
-test.todo('JsAudio.getStreamWriteAvailable')
-test.todo('JsAudio.getStreamReadAvailable')
-test.todo('JsAudio.writeStream')
-test.todo('JsAudio.readStream')
-test('JsAudio.terminate', (t) => {
-  return t.truthy(JsAudio.terminate())
+test.todo('JsAudioNative.openStream')
+test.todo('JsAudioNative.openDefaultStream')
+test.todo('JsAudioNative.startStream')
+test.todo('JsAudioNative.getStreamWriteAvailable')
+test.todo('JsAudioNative.getStreamReadAvailable')
+test.todo('JsAudioNative.writeStream')
+test.todo('JsAudioNative.readStream')
+test('JsAudioNative.terminate', (t) => {
+  return t.truthy(JsAudioNative.terminate())
 })
