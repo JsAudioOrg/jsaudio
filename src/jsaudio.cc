@@ -128,6 +128,43 @@ NAN_METHOD(getDeviceInfo) {
 
 /* BEGIN Stream APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
+NAN_METHOD(isFormatSupported) {
+  HandleScope scope;
+  // Get params objects
+  LocalObject obj = info[0]->ToObject();
+  // Prepare params
+  LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
+  LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
+  PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
+  PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
+  double sampleRate = LocalizeDouble(Get(obj, ToLocString("sampleRate")));
+  // Start stream
+  PaError err = Pa_IsFormatSupported(&paramsIn, &paramsOut, sampleRate);
+  if (err == paFormatIsSupported) return info.GetReturnValue().Set(true);
+  info.GetReturnValue().Set(false);
+}
+
+// Not a canon PA method, extends isFormatSupported to provide reason if not
+NAN_METHOD(whyIsFormatUnsupported) {
+  HandleScope scope;
+  // Get params objects
+  LocalObject obj = info[0]->ToObject();
+  // Prepare params
+  LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
+  LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
+  PaStreamParameters paramsIn = LocObjToPaStreamParameters(objInput);
+  PaStreamParameters paramsOut = LocObjToPaStreamParameters(objOutput);
+  double sampleRate = LocalizeDouble(Get(obj, ToLocString("sampleRate")));
+  // Start stream
+  PaError err = Pa_IsFormatSupported(&paramsIn, &paramsOut, sampleRate);
+  const char* errText = Pa_GetErrorText(err);
+  if (err == paFormatIsSupported || errText == NULL) {
+    return info.GetReturnValue().Set(ToLocString("Supported"));
+  }
+  info.GetReturnValue().Set(ConstCharPointerToLocString(errText));
+}
+
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(openStream) {
   HandleScope scope;
   // Get params objects

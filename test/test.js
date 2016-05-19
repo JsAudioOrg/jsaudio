@@ -54,6 +54,8 @@ test('new JsPaStream()', (t) => {
   let stream = new JsPaStream()
   return t.truthy(stream instanceof JsPaStream)
 })
+test.todo('JsAudioNative.isFormatSupported')
+test.todo('JsAudioNative.whyIsFormatUnsupported')
 test.todo('JsAudioNative.openStream')
 test.todo('JsAudioNative.openDefaultStream')
 test.todo('JsAudioNative.startStream')

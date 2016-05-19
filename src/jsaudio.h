@@ -25,6 +25,8 @@ NAN_METHOD(getDefaultInputDevice);
 NAN_METHOD(getDefaultOutputDevice);
 NAN_METHOD(getDeviceInfo);
 /* BEGIN Stream APIs */
+NAN_METHOD(isFormatSupported);
+NAN_METHOD(whyIsFormatUnsupported);
 NAN_METHOD(openStream);
 NAN_METHOD(openDefaultStream);
 NAN_METHOD(closeStream);

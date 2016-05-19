@@ -3,19 +3,25 @@
 
 /* BEGIN Init & Exports */
 NAN_MODULE_INIT(InitAll) {
+  /* BEGIN Initialization, termination, and utility */
   NAN_EXPORT(target, initialize);
   NAN_EXPORT(target, terminate);
   NAN_EXPORT(target, getVersion);
+  /* BEGIN Host APIs */
   NAN_EXPORT(target, getHostApiCount);
   NAN_EXPORT(target, getDefaultHostApi);
   NAN_EXPORT(target, getHostApiInfo);
   NAN_EXPORT(target, getLastHostErrorInfo);
   NAN_EXPORT(target, hostApiTypeIdToHostApiIndex);
   NAN_EXPORT(target, hostApiDeviceIndexToDeviceIndex);
+  /* BEGIN Device APIs */
   NAN_EXPORT(target, getDeviceCount);
   NAN_EXPORT(target, getDefaultInputDevice);
   NAN_EXPORT(target, getDefaultOutputDevice);
   NAN_EXPORT(target, getDeviceInfo);
+  /* BEGIN Stream APIs */
+  NAN_EXPORT(target, isFormatSupported);
+  NAN_EXPORT(target, whyIsFormatUnsupported);
   NAN_EXPORT(target, openStream);
   NAN_EXPORT(target, openDefaultStream);
   NAN_EXPORT(target, closeStream);
@@ -26,8 +32,7 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, writeStream);
   NAN_EXPORT(target, readStream);
 
-
-    JsPaStream::Init(target);
+  JsPaStream::Init(target);
 }
 
 NODE_MODULE(jsaudio, InitAll)
