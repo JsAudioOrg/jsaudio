@@ -29,6 +29,12 @@ NAN_METHOD(getVersion) {
   info.GetReturnValue().Set(Pa_GetVersion());
 }
 
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ae606855a611cf29c7d2d7421df5e3b5d
+NAN_METHOD(getErrorText) {
+  int err = info[0]->Uint32Value();
+  info.GetReturnValue().Set(ConstCharPointerToLocString(Pa_GetErrorText(err)));
+}
+
 /* BEGIN Host APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a19dbdb7c8702e3f4bfc0cdb99dac3dd9
 NAN_METHOD(getHostApiCount) {

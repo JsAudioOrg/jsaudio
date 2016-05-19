@@ -7,6 +7,7 @@ NAN_MODULE_INIT(InitAll) {
   NAN_EXPORT(target, initialize);
   NAN_EXPORT(target, terminate);
   NAN_EXPORT(target, getVersion);
+  NAN_EXPORT(target, getErrorText);
   /* BEGIN Host APIs */
   NAN_EXPORT(target, getHostApiCount);
   NAN_EXPORT(target, getDefaultHostApi);

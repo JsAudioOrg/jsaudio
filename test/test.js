@@ -12,6 +12,7 @@ test('JsAudioNative.initialize', (t) => {
 test('JsAudioNative.getVersion', (t) => {
   return t.truthy(Number.isInteger(JsAudioNative.getVersion()))
 })
+test.todo('JsAudioNative.getErrorText')
 test('JsAudioNative.getHostApiCount', (t) => {
   return t.truthy(Number.isInteger(JsAudioNative.getHostApiCount()))
 })

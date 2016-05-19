@@ -12,6 +12,7 @@
 NAN_METHOD(initialize);
 NAN_METHOD(terminate);
 NAN_METHOD(getVersion);
+NAN_METHOD(getErrorText);
 /* BEGIN Host APIs */
 NAN_METHOD(getHostApiCount);
 NAN_METHOD(getDefaultHostApi);
