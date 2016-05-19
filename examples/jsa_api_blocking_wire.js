@@ -11,7 +11,7 @@ http://portaudio.com/docs/v19-doxydocs/paex__read__write__wire_8c_source.html
 */
 
 // Setup
-const numSeconds = 5
+const numSeconds = process.argv[2] || 5
 const jsAudio = new JsAudio()
 
 function blockingWire () {

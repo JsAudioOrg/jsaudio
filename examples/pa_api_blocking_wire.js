@@ -13,7 +13,7 @@ http://portaudio.com/docs/v19-doxydocs/paex__read__write__wire_8c_source.html
 */
 
 // Setup
-const numSeconds = 5
+const numSeconds = process.argv[2] || 5
 const sampleRate = 48000
 const channels = 2
 const framesPerBuffer = 8192

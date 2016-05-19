@@ -13,8 +13,8 @@ http://portaudio.com/docs/v19-doxydocs/paex__write__sine_8c_source.html
 */
 
 // Setup
-const numPlays = 8
-const numSeconds = 1
+const numPlays = process.argv[2] || 8
+const numSeconds = process.argv[3] || 1
 const sampleRate = 48000
 const channels = 2
 const framesPerBuffer = 8192
