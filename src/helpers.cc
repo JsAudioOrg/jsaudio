@@ -2,7 +2,7 @@
 
 // PortAudio helpers
 PaError ThrowIfPaError (PaError err) {
-  if (err != paNoError) {
+  if (err != paNoError && err < 0) {
     ThrowError(Pa_GetErrorText(err));
   }
   return err;
