@@ -280,9 +280,19 @@ NAN_METHOD(isStreamStopped) {
   // Get stream object
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
   // Check if stream is stopped
-  int stopped = static_cast<int>(
-    ThrowIfPaError(Pa_IsStreamStopped(stream->streamPtr())));
+  PaError stopped = ThrowIfPaError(Pa_IsStreamStopped(stream->streamPtr()));
   if (stopped == 1) return info.GetReturnValue().Set(true);
+  info.GetReturnValue().Set(false);
+}
+
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a1f8709c4971932643681a6f374c4bb5a
+NAN_METHOD(isStreamActive) {
+  HandleScope scope;
+  // Get stream object
+  JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
+  // Check if stream is active
+  PaError active = ThrowIfPaError(Pa_IsStreamActive(stream->streamPtr()));
+  if (active == 1) return info.GetReturnValue().Set(true);
   info.GetReturnValue().Set(false);
 }
 
