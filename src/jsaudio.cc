@@ -340,29 +340,31 @@ NAN_METHOD(getStreamCpuLoad) {
   info.GetReturnValue().Set(cpu);
 }
 
-//http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0b62d4b74b5d3d88368e9e4c0b8b2dc7
+// http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a0b62d4b74b5d3d88368e9e4c0b8b2dc7
 NAN_METHOD(readStream) {
   HandleScope scope;
-  // Get stream object
+  // Get stream object from info[0]
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  // Get the buffer data
-  TypedArrayContents<float> buf(info[1]);
-  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  // Get the buffer data from info[1]
+  TypedArrayContents<float> buffer(info[1]);
+  // Get frames from info[2]
+  unsigned long frames = info[2]->Uint32Value();
   // Start stream
-  ThrowIfPaError(Pa_ReadStream(stream->streamPtr(), *buf, bufFrames));
+  ThrowIfPaError(Pa_ReadStream(stream->streamPtr(), *buffer, frames));
   info.GetReturnValue().Set(true);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a075a6efb503a728213bdae24347ed27d
 NAN_METHOD(writeStream) {
   HandleScope scope;
-  // Get stream object
+  // Get stream object from info[0]
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
-  // Get the buffer data
-  TypedArrayContents<float> buf(info[1]);
-  unsigned long bufFrames = static_cast<unsigned long>(buf.length()) / 2;
+  // Get the buffer data from info[1]
+  TypedArrayContents<float> buffer(info[1]);
+  // Get frames from info[2]
+  unsigned long frames = info[2]->Uint32Value();
   // Start stream
-  ThrowIfPaError(Pa_WriteStream(stream->streamPtr(), *buf, bufFrames));
+  ThrowIfPaError(Pa_WriteStream(stream->streamPtr(), *buffer, frames));
   info.GetReturnValue().Set(true);
 }
 
