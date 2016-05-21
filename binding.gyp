@@ -44,6 +44,16 @@
           ],
           "include_dirs": ["gyp/include"]
         }
+      ],
+      [
+        'OS=="linux"', {
+          "libraries" : [
+            '<(module_root_dir)/vendor/libportaudio.so'
+    	  ],
+    	  'cflags!': [ '-fno-exceptions' ],
+    	  'cflags_cc!': [ '-fno-exceptions' ],
+    	  'cflags_cc': [ '-std=c++0x' ]
+    	}
       ]
     ]
   }]

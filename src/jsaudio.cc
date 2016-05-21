@@ -69,7 +69,7 @@ NAN_METHOD(getHostApiInfo) {
 NAN_METHOD(getLastHostErrorInfo) {
   HandleScope scope;
   const PaHostErrorInfo* hei = Pa_GetLastHostErrorInfo();
-  if (hei == NULL) return info.GetReturnValue().Set(NULL);
+  if (hei == NULL) return info.GetReturnValue().Set(ToLocString(""));
   LocalObject obj = New<Object>();
   obj->Set(ToLocString("hostApiType"), New<Number>(hei->hostApiType));
   obj->Set(ToLocString("errorCode"), New<Number>(hei->errorCode));
