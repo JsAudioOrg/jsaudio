@@ -1,6 +1,6 @@
 {
   "name": "jsaudio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JsAudio is to Node / JS as PyAudio is to Python",
   "main": "index.js",
   "scripts": {
