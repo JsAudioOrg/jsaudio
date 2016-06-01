@@ -2,14 +2,13 @@
   http://portaudio.com/docs/v19-doxydocs/api_overview.html
 */
 
-
 /* BEGIN Setup */
 #include "jsaudio.h"
 #include "helpers.h"
 #include "stream.h"
 
-/* Initialize stream and jsStreamCb as global */
-LocalFunction jsStreamCb;
+/* Global variables */
+Callback* jsCallback = NULL;
 
 /* BEGIN Initialization, termination, and utility */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#abed859482d156622d9332dff9b2d89da
@@ -133,6 +132,36 @@ NAN_METHOD(getDeviceInfo) {
 }
 
 /* BEGIN Stream APIs */
+// Proxy PaStreamCallback through jsCallback, this won't work as implemented :|
+int JsPaStreamCallback (
+  const void* inputBuffer,
+  void* outputBuffer,
+  unsigned long framesPerBuffer,
+  const PaStreamCallbackTimeInfo* timeInfo,
+  PaStreamCallbackFlags statusFlags,
+  void* userData
+) {
+  LocalValue argv[] = {
+    New(&inputBuffer),
+    New(&outputBuffer),
+    New<Number>(framesPerBuffer),
+    New(&timeInfo),
+    New<Number>(statusFlags),
+    New(&userData)
+  };
+  return LocalizeInt(jsCallback->Call(6, argv));
+}
+
+// PaStreamCallback worker data
+struct StreamCallbackData {
+  const void* inputBuffer;
+  void* outputBuffer;
+  unsigned long framesPerBuffer;
+  const PaStreamCallbackTimeInfo* timeInfo;
+  PaStreamCallbackFlags statusFlags;
+  void* userData;
+};
+
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(isFormatSupported) {
   HandleScope scope;
@@ -175,8 +204,16 @@ NAN_METHOD(openStream) {
   HandleScope scope;
   // Get params objects
   LocalObject obj = info[0]->ToObject();
+  // Get stream pointer
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
+  // Get callback function
+  MaybeLocalValue streamCallback = Get(obj, ToLocString("streamCallback"));
+  bool isFunction = (
+    !streamCallback.IsEmpty() && streamCallback.ToLocalChecked()->IsFunction());
+  jsCallback = isFunction
+    ? new Callback(ToLocObject(streamCallback).As<Function>())
+    : NULL;
   // Prepare in / out params
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
@@ -196,7 +233,7 @@ NAN_METHOD(openStream) {
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    NULL,
+    isFunction ? JsPaStreamCallback : NULL,
     NULL
   );
   ThrowIfPaError(err);

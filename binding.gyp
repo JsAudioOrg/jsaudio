@@ -2,7 +2,12 @@
   'targets': [
   {
     'target_name': 'jsaudio',
-    'sources': ['src/addon.cc', 'src/jsaudio.cc', 'src/helpers.cc', 'src/stream.cc'],
+    'sources': [
+        'src/addon.cc',
+        'src/jsaudio.cc',
+        'src/helpers.cc',
+        'src/stream.cc'
+    ],
     'include_dirs': [
       '<!(node -e "require(\'nan\')")',
       '<(module_root_dir)/vendor/'
