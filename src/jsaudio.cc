@@ -190,6 +190,13 @@ NAN_METHOD(openStream) {
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
+  // Get callback Function
+  JsPaStreamCallback* callback = NULL;
+  bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
+  if (hasCallback) {
+    Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
+    callback = new JsPaStreamCallback(function);
+  }
   // Prepare in / out params
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
@@ -209,8 +216,8 @@ NAN_METHOD(openStream) {
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    NULL,
-    NULL
+    hasCallback ? StreamCallbackDispatcher : NULL,
+    static_cast<void*>(callback)
   );
   ThrowIfPaError(err);
   info.GetReturnValue().Set(true);
