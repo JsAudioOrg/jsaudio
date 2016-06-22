@@ -7,6 +7,7 @@
 #include "jsaudio.h"
 #include "helpers.h"
 #include "stream.h"
+#include "callback.h"
 
 /* Initialize stream and jsStreamCb as global */
 LocalFunction jsStreamCb;
@@ -132,7 +133,6 @@ NAN_METHOD(getDeviceInfo) {
   info.GetReturnValue().Set(obj);
 }
 
-/* BEGIN Stream APIs */
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
 NAN_METHOD(isFormatSupported) {
   HandleScope scope;
@@ -168,6 +168,19 @@ NAN_METHOD(whyIsFormatUnsupported) {
     return info.GetReturnValue().Set(ToLocString("Supported"));
   }
   info.GetReturnValue().Set(ConstCharPointerToLocString(errText));
+}
+
+/* BEGIN Stream APIs */
+static int StreamCallbackDispatcher (
+  const void *input,
+  void *output,
+  unsigned long frameCount,
+  const PaStreamCallbackTimeInfo *timeInfo,
+  PaStreamCallbackFlags statusFlags,
+  void *userData
+) {
+  JsPaStreamCallback* callback = static_cast<JsPaStreamCallback*>(userData);
+  return callback->sendToCallback(frameCount);
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
@@ -210,6 +223,13 @@ NAN_METHOD(openDefaultStream) {
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
+  // Get callback Function
+  JsPaStreamCallback* callback = NULL;
+  bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
+  if (hasCallback) {
+    Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
+    callback = new JsPaStreamCallback(function);
+  }
   // Get stream options
   int inputChannels = LocalizeInt(Get(obj, ToLocString("numInputChannels")));
   int outputChannels = LocalizeInt(Get(obj, ToLocString("numOutputChannels")));
@@ -226,9 +246,10 @@ NAN_METHOD(openDefaultStream) {
     sampleFormat,
     sampleRate,
     framesPerBuffer,
-    NULL,
-    NULL
+    hasCallback ? StreamCallbackDispatcher : NULL,
+    static_cast<void*>(callback)
   );
+  callback->dispatchJSCallback();
   ThrowIfPaError(err);
   info.GetReturnValue().Set(true);
 }

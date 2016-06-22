@@ -43,6 +43,10 @@ LocalObject ToLocObject (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->ToObject();
 }
 
+LocalFunction ToLocFunction (MaybeLocalValue lvIn) {
+  return lvIn.ToLocalChecked().As<Function>();
+}
+
 LocalString ConstCharPointerToLocString (const char* constCharPointer) {
   if (constCharPointer == NULL) return New("").ToLocalChecked();
   std::string str(constCharPointer);
