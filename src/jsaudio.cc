@@ -249,7 +249,6 @@ NAN_METHOD(openDefaultStream) {
     hasCallback ? StreamCallbackDispatcher : NULL,
     static_cast<void*>(callback)
   );
-  callback->dispatchJSCallback();
   ThrowIfPaError(err);
   info.GetReturnValue().Set(true);
 }
