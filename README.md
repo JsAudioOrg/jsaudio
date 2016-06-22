@@ -1,4 +1,4 @@
-# JsAudio
+# JsAudio   [![npm version](https://badge.fury.io/js/jsaudio.svg)](http://badge.fury.io/js/jsaudio)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
 
 ## JsAudio is to Node / JS as PyAudio is to Python
 
@@ -8,19 +8,20 @@ The goal of the JsAudio project is to provide a javascript implementation of Por
 
 ### Status
 
-This is a work in progress and is in no way ready to use in any fashion at this time.
+This is a work in progress, but currently (nearly) all PA functions are ported.
+Currently PortAudio's read/write method is implemented, but the callback method is not.
 
-The javascript API is far from finalized, though it will closely follow PortAudio's API and should look similar to PyAudio in usage.
+Docs are in progress, as we are still refining the abstracted API. That being said,
+the `JsAudioNative` api directly follows [PortAudio's API](http://portaudio.com/docs/v19-doxydocs/api_overview.html). You can access this by
+requiring like so `require('jsaudio').JsAudioNative`
 
-Currently the utility functions have been implemented in NAN and are exposed in a very rough javascript API. 
-
-The stream handling is still in development and as such the library is not ready for usage until that is fully implemented.
+Until the  abstracted API is finalized you can check out the  [examples](https://github.com/JsAudioOrg/jsaudio/tree/master/examples) directory to see usage at it's current state. Also, feel free to look at the JsAudio class in [lib/jsaudio.js](https://github.com/JsAudioOrg/jsaudio/blob/master/lib/jsaudio.js)
+which serves as the abstraction API.
 
 ### Contributing
-Currently the javascript is written in [JS Standard Style](https://github.com/feross/standard). That is [my](https://github.com/musocrat) preference, but it is open for discussion. I only ask that we maintain consistent styling for the project.
-
 1. Fork it
 2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Added some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create new Pull Request
+3. Ensure code style is consistent (js-standard for js)
+4. Commit your changes (git commit -am 'Added some feature')
+5. Push to the branch (git push origin my-new-feature)
+6. Create new Pull Request

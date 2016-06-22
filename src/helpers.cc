@@ -1,5 +1,28 @@
 #include "helpers.h"
 
+// PortAudio helpers
+PaError ThrowIfPaError (PaError err) {
+  if (err != paNoError && err < 0) {
+    ThrowError(Pa_GetErrorText(err));
+  }
+  return err;
+}
+
+int ThrowIfPaErrorInt (int err) {
+  if (err < 0) {
+    ThrowError(Pa_GetErrorText(err));
+  }
+  return err;
+}
+
+PaDeviceIndex ThrowIfPaNoDevice (PaDeviceIndex dvcIndex) {
+  if (dvcIndex == paNoDevice) {
+    ThrowError(ToLocString("No available devices"));
+  }
+  return dvcIndex;
+}
+
+// Cast helpers
 int LocalizeInt (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->Uint32Value();
 }
@@ -18,6 +41,12 @@ LocalString ToLocString (std::string str) {
 
 LocalObject ToLocObject (MaybeLocalValue lvIn) {
   return lvIn.ToLocalChecked()->ToObject();
+}
+
+LocalString ConstCharPointerToLocString (const char* constCharPointer) {
+  if (constCharPointer == NULL) return New("").ToLocalChecked();
+  std::string str(constCharPointer);
+  return New(str).ToLocalChecked();
 }
 
 void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai) {

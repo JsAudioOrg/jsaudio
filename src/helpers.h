@@ -3,12 +3,18 @@
 
 #include "jsaudio.h"
 
+// PortAudio helpers
+PaError ThrowIfPaError (PaError err);
+int ThrowIfPaErrorInt (int err);
+PaDeviceIndex ThrowIfPaNoDevice (PaDeviceIndex dvcIndex);
+// Cast helpers
 int LocalizeInt (MaybeLocalValue lvIn);
 double LocalizeDouble (MaybeLocalValue lvIn);
-unsigned long LocalizeULong (MaybeLocalValue lvIn); 
+unsigned long LocalizeULong (MaybeLocalValue lvIn);
 LocalString ToLocString (std::string str);
 LocalObject ToLocObject (MaybeLocalValue lvIn);
-void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai); 
+LocalString ConstCharPointerToLocString (const char* constCharPointer);
+void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai);
 void DeviceInfoToLocalObject (LocalObject obj, const PaDeviceInfo* di);
 PaStreamParameters LocObjToPaStreamParameters (LocalObject obj);
 
