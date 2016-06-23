@@ -8,10 +8,10 @@ public:
   explicit JsPaStreamCallbackBridge(Callback *callback_);
   ~JsPaStreamCallbackBridge();
   
-  int sendToCallback(unsigned long frameCount);
+  int sendToCallback(const void* input, unsigned long frameCount);
   void dispatchJSCallback();
   
-  void* consumeAudioData(unsigned long frameCount);
+  void consumeAudioData(void* output, unsigned long frameCount);
   
 private:
   NAN_INLINE static NAUV_WORK_CB(UVCallback) {
@@ -23,6 +23,9 @@ private:
   
   uv_async_t *async;
   uv_mutex_t async_lock;
+  unsigned long m_frameCount;
+  void* m_inputBuffer;
+  void* m_outputBuffer;
 };
 
 #endif
