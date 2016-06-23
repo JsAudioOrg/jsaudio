@@ -179,9 +179,10 @@ static int StreamCallbackDispatcher (
   PaStreamCallbackFlags statusFlags,
   void *userData
 ) {
-  JsPaStreamCallbackBridge* callback = static_cast<JsPaStreamCallbackBridge*>(userData);
+  JsPaStreamCallbackBridge* bridge = static_cast<JsPaStreamCallbackBridge*>(userData);
   
-  callback->sendToCallback(frameCount);
+  bridge->sendToCallback(input, frameCount);
+  bridge->consumeAudioData(output, frameCount);
   
   return 0;
 }
