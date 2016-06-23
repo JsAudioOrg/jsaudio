@@ -3,10 +3,10 @@
 
 #include "jsaudio.h"
 
-class JsPaStreamCallback : public AsyncWorker {
+class JsPaStreamCallbackBridge : public AsyncWorker {
 public:
-  explicit JsPaStreamCallback(Callback *callback_);
-  ~JsPaStreamCallback();
+  explicit JsPaStreamCallbackBridge(Callback *callback_);
+  ~JsPaStreamCallbackBridge();
   
   int sendToCallback(unsigned long frameCount);
   void dispatchJSCallback();
@@ -15,8 +15,8 @@ public:
   
 private:
   NAN_INLINE static NAUV_WORK_CB(UVCallback) {
-    JsPaStreamCallback *callback =
-            static_cast<JsPaStreamCallback*>(async->data);
+    JsPaStreamCallbackBridge *callback =
+            static_cast<JsPaStreamCallbackBridge*>(async->data);
     callback->dispatchJSCallback();
   }
   void Execute() {}

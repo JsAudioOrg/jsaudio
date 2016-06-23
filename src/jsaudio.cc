@@ -179,8 +179,11 @@ static int StreamCallbackDispatcher (
   PaStreamCallbackFlags statusFlags,
   void *userData
 ) {
-  JsPaStreamCallback* callback = static_cast<JsPaStreamCallback*>(userData);
-  return callback->sendToCallback(frameCount);
+  JsPaStreamCallbackBridge* callback = static_cast<JsPaStreamCallbackBridge*>(userData);
+  
+  callback->sendToCallback(frameCount);
+  
+  return 0;
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
@@ -191,11 +194,11 @@ NAN_METHOD(openStream) {
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
   // Get callback Function
-  JsPaStreamCallback* callback = NULL;
+  JsPaStreamCallbackBridge* callback = NULL;
   bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
   if (hasCallback) {
     Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
-    callback = new JsPaStreamCallback(function);
+    callback = new JsPaStreamCallbackBridge(function);
   }
   // Prepare in / out params
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
@@ -231,11 +234,11 @@ NAN_METHOD(openDefaultStream) {
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
   // Get callback Function
-  JsPaStreamCallback* callback = NULL;
+  JsPaStreamCallbackBridge* callback = NULL;
   bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
   if (hasCallback) {
     Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
-    callback = new JsPaStreamCallback(function);
+    callback = new JsPaStreamCallbackBridge(function);
   }
   // Get stream options
   int inputChannels = LocalizeInt(Get(obj, ToLocString("numInputChannels")));
