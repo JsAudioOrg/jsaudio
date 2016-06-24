@@ -6,10 +6,13 @@
 class JsPaStreamCallbackBridge : public AsyncWorker {
 public:
   explicit JsPaStreamCallbackBridge(Callback *callback_,
-                                    size_t bytesPerFrame);
-  explicit JsPaStreamCallbackBridge(Callback *callback_,
                                     size_t bytesPerFrameIn,
-                                    size_t bytesPerFrameOut);
+                                    size_t bytesPerFrameOut,
+                                    const LocalValue &userData);
+  explicit JsPaStreamCallbackBridge(Callback *callback_, size_t bytesPerFrame,
+                                    const LocalValue &userData)
+    : JsPaStreamCallbackBridge(callback_, bytesPerFrame, bytesPerFrame, userData) {}
+  
   ~JsPaStreamCallbackBridge();
   
   int sendToCallback(const void* input, unsigned long frameCount);
@@ -32,6 +35,8 @@ private:
   size_t m_bytesPerFrameOut;
   void* m_inputBuffer;
   void* m_outputBuffer;
+  
+  
 };
 
 #endif

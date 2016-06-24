@@ -1,24 +1,10 @@
 #include "callback.h"
-
-JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
-                                                   size_t bytesPerFrame)
-  : AsyncWorker(callback_), m_frameCount(0), 
-    m_bytesPerFrameIn(bytesPerFrame), m_bytesPerFrameOut(bytesPerFrame),
-    m_inputBuffer(nullptr), m_outputBuffer(nullptr) {
-  async = new uv_async_t;
-  uv_async_init(
-    uv_default_loop()
-    , async
-    , UVCallback
-  );
-  async->data = this;
-
-  uv_mutex_init(&async_lock);  
-}
+#include "helpers.h"
 
 JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
                                                    size_t bytesPerFrameIn,
-                                                   size_t bytesPerFrameOut)
+                                                   size_t bytesPerFrameOut,
+                                                   const LocalValue &userData)
   : AsyncWorker(callback_), m_frameCount(0),
     m_bytesPerFrameIn(bytesPerFrameIn), m_bytesPerFrameOut(bytesPerFrameOut),
     m_inputBuffer(nullptr), m_outputBuffer(nullptr) {
@@ -30,7 +16,10 @@ JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
   );
   async->data = this;
 
-  uv_mutex_init(&async_lock);  
+  uv_mutex_init(&async_lock);
+      
+  // Save userData to persistent object
+  SaveToPersistent(ToLocString("userData"), userData);
 }
 
 JsPaStreamCallbackBridge::~JsPaStreamCallbackBridge() {
@@ -94,7 +83,8 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
     LocalValue argv[] = {
       input,
       output,
-      New<Number>(frameCount)
+      New<Number>(frameCount),
+      GetFromPersistent(ToLocString("userData"))
     };
     callbackReturn = callback->Call(3, argv);
     
