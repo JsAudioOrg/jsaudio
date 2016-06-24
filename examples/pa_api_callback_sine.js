@@ -5,7 +5,7 @@ const JsAudioExports = require('./../lib/jsaudio')
 const JsAudio = JsAudioExports.JsAudioNative
 const JsPaStream = JsAudioExports.JsPaStream
 
-/* Callback SINE EXAMPLE
+/* CALLBACK SINE EXAMPLE
 http://portaudio.com/docs/v19-doxydocs/paex__sine_8c_source.html
 */
 
@@ -29,12 +29,11 @@ const formats = {
 
 //Create callback class that outputs a sinewave
 class SineCallback {
-   
-  constructor(tableSize) {
+  constructor (tableSize) {
     this.left_phase = 0
     this.right_phase = 0
     this.tableSize = tableSize
-    this.sine = [];
+    this.sine = []
     
     // initialise sinusoidal wavetable
     for(var i=0; i<tableSize; i++ )
@@ -43,17 +42,17 @@ class SineCallback {
     }
   }
   
-  callback(input, output, frameCount) {
-    var outputBufferView = new Float32Array(output);
+  callback (input, output, frameCount) {
+    var outputBufferView = new Float32Array(output)
     
     for(var i=0; i<frameCount*2; i+=2 )
     {
-      outputBufferView[i] = this.sine[this.left_phase]  /* left */
-      outputBufferView[i+1] = this.sine[this.right_phase]  /* right */
+      outputBufferView[i] = this.sine[this.left_phase]  // left 
+      outputBufferView[i+1] = this.sine[this.right_phase]  // right 
       this.left_phase += 1
-      if( this.left_phase >= this.tableSize ) this.left_phase -= this.tableSize;
-      this.right_phase += 3 /* higher pitch so we can distinguish left and right. */
-      if( this.right_phase >= this.tableSize ) this.right_phase -= this.tableSize;
+      if( this.left_phase >= this.tableSize ) this.left_phase -= this.tableSize
+      this.right_phase += 3 // higher pitch so we can distinguish left and right.
+      if( this.right_phase >= this.tableSize ) this.right_phase -= this.tableSize
     }
   }
 }
@@ -76,14 +75,12 @@ function callbackSine () {
     sampleFormat: formats.paFloat32,
     numInputChannels: channels,
     numOutputChannels: channels,
-    callback: (input, output, frameCount)=>{
-      return callback.callback(input, output, frameCount)
-    }
+    callback: callback.callback.bind(callback)
   }
   // open stream with options
   JsAudio.openDefaultStream(streamOpts)
-  
-  JsAudio.startStream(stream);
+  // start stream
+  JsAudio.startStream(stream)
 }
 
 // Run it
