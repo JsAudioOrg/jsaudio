@@ -380,6 +380,7 @@ NAN_METHOD(readStream) {
   // Get stream object from info[0]
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
   // Get the buffer data from info[1]
+  // Uses float as template type, but should work regardless of sample format
   TypedArrayContents<float> buffer(info[1]);
   // Get frames from info[2]
   unsigned long frames = info[2]->Uint32Value();
@@ -394,6 +395,7 @@ NAN_METHOD(writeStream) {
   // Get stream object from info[0]
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(info[0]->ToObject());
   // Get the buffer data from info[1]
+  // Uses float as template type, but should work regardless of sample format
   TypedArrayContents<float> buffer(info[1]);
   // Get frames from info[2]
   unsigned long frames = info[2]->Uint32Value();
