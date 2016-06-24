@@ -61,8 +61,7 @@ class SineCallback {
 function callbackSine () {
   // initialize stream instance
   let stream = new JsPaStream(),
-      callback = new SineCallback(200),
-      test = 12
+      callback = new SineCallback(200)
   
   // initialize PortAudio
   JsAudio.initialize()
