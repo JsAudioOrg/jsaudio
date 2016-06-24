@@ -5,7 +5,11 @@
 
 class JsPaStreamCallbackBridge : public AsyncWorker {
 public:
-  explicit JsPaStreamCallbackBridge(Callback *callback_);
+  explicit JsPaStreamCallbackBridge(Callback *callback_,
+                                    size_t bytesPerFrame);
+  explicit JsPaStreamCallbackBridge(Callback *callback_,
+                                    size_t bytesPerFrameIn,
+                                    size_t bytesPerFrameOut);
   ~JsPaStreamCallbackBridge();
   
   int sendToCallback(const void* input, unsigned long frameCount);
@@ -24,6 +28,8 @@ private:
   uv_async_t *async;
   uv_mutex_t async_lock;
   unsigned long m_frameCount;
+  size_t m_bytesPerFrameIn;
+  size_t m_bytesPerFrameOut;
   void* m_inputBuffer;
   void* m_outputBuffer;
 };

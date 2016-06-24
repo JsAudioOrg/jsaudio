@@ -194,13 +194,6 @@ NAN_METHOD(openStream) {
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
-  // Get callback Function
-  JsPaStreamCallbackBridge* callback = NULL;
-  bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
-  if (hasCallback) {
-    Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
-    callback = new JsPaStreamCallbackBridge(function);
-  }
   // Prepare in / out params
   LocalObject objInput = ToLocObject(Get(obj, ToLocString("input")));
   LocalObject objOutput = ToLocObject(Get(obj, ToLocString("output")));
@@ -212,6 +205,15 @@ NAN_METHOD(openStream) {
     Get(obj, ToLocString("framesPerBuffer")));
   PaStreamFlags streamFlags = static_cast<PaStreamFlags>(
     Get(obj, ToLocString("streamFlags")).ToLocalChecked()->IntegerValue());
+  // Get callback Function
+  JsPaStreamCallbackBridge* callback = nullptr;
+  if (HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false)) {
+    callback = new JsPaStreamCallbackBridge(
+      new Callback(ToLocFunction(Get(obj, ToLocString("callback")))), 
+      bytesPerFrame(paramsIn.sampleFormat),
+      bytesPerFrame(paramsOut.sampleFormat)
+    );
+  }
   // Start stream
   PaError err = Pa_OpenStream(
     stream->streamPtrRef(),
@@ -220,7 +222,7 @@ NAN_METHOD(openStream) {
     sampleRate,
     framesPerBuffer,
     streamFlags,
-    hasCallback ? StreamCallbackDispatcher : NULL,
+    callback != nullptr ? StreamCallbackDispatcher : NULL,
     static_cast<void*>(callback)
   );
   ThrowIfPaError(err);
@@ -234,13 +236,6 @@ NAN_METHOD(openDefaultStream) {
   LocalObject obj = info[0]->ToObject();
   JsPaStream* stream = ObjectWrap::Unwrap<JsPaStream>(
     ToLocObject(Get(obj, ToLocString("stream"))));
-  // Get callback Function
-  JsPaStreamCallbackBridge* callback = NULL;
-  bool hasCallback = HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false);
-  if (hasCallback) {
-    Callback* function = new Callback(ToLocFunction(Get(obj, ToLocString("callback"))));
-    callback = new JsPaStreamCallbackBridge(function);
-  }
   // Get stream options
   int inputChannels = LocalizeInt(Get(obj, ToLocString("numInputChannels")));
   int outputChannels = LocalizeInt(Get(obj, ToLocString("numOutputChannels")));
@@ -249,6 +244,14 @@ NAN_METHOD(openDefaultStream) {
     Get(obj, ToLocString("sampleFormat"))));
   unsigned long framesPerBuffer = LocalizeULong(
     Get(obj, ToLocString("framesPerBuffer")));
+  // Get callback Function
+  JsPaStreamCallbackBridge* callback = nullptr;
+  if (HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false)) {
+    callback = new JsPaStreamCallbackBridge(
+      new Callback(ToLocFunction(Get(obj, ToLocString("callback")))), 
+      bytesPerFrame(sampleFormat)
+    );
+  }
   // Start stream
   PaError err = Pa_OpenDefaultStream(
     stream->streamPtrRef(),
@@ -257,7 +260,7 @@ NAN_METHOD(openDefaultStream) {
     sampleFormat,
     sampleRate,
     framesPerBuffer,
-    hasCallback ? StreamCallbackDispatcher : NULL,
+    callback != nullptr ? StreamCallbackDispatcher : NULL,
     static_cast<void*>(callback)
   );
   ThrowIfPaError(err);

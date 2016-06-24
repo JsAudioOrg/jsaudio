@@ -18,5 +18,6 @@ LocalString ConstCharPointerToLocString (const char* constCharPointer);
 void HostApiInfoToLocalObject (LocalObject obj, const PaHostApiInfo* hai);
 void DeviceInfoToLocalObject (LocalObject obj, const PaDeviceInfo* di);
 PaStreamParameters LocObjToPaStreamParameters (LocalObject obj);
+size_t bytesPerFrame (PaSampleFormat sampleFormat);
 
 #endif

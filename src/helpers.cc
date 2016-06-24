@@ -112,3 +112,33 @@ PaStreamParameters LocObjToPaStreamParameters (LocalObject obj) {
   };
   return params;
 }
+
+size_t bytesPerFrame (PaSampleFormat sampleFormat) {
+  size_t retVal;
+  
+  switch (sampleFormat) {
+    case paFloat32:
+      retVal = sizeof(float) * 2;
+      break;
+    case paInt32:
+      retVal = sizeof(int32_t) * 2;
+      break;
+    case paInt24:
+      retVal = (sizeof(int16_t) + sizeof(int8_t)) * 2;
+      break;
+    case paInt16:
+      retVal = sizeof(int16_t) * 2;
+      break;
+    case paInt8:
+      retVal = sizeof(int8_t) * 2;
+      break;
+    case paUInt8:
+      retVal = sizeof(uint16_t) * 2;
+      break;
+    default:
+      retVal = 0;
+      break;
+  }
+  
+  return retVal;
+}
