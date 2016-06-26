@@ -10,6 +10,7 @@ http://portaudio.com/docs/v19-doxydocs/paex__sine_8c_source.html
 */
 
 // Setup
+const numSeconds = process.argv[2] || 5
 const sampleRate = 48000
 const channels = 2
 const framesPerBuffer = 8192
@@ -27,41 +28,43 @@ const formats = {
 }
 
 
-//Create callback class that outputs a sinewave
-class SineCallback {
-  constructor (tableSize) {
-    this.left_phase = 0
-    this.right_phase = 0
-    this.tableSize = tableSize
-    this.sine = []
-    
-    // initialise sinusoidal wavetable
-    for(var i=0; i<tableSize; i++ )
-    {
-      this.sine[i] = Math.sin((i/tableSize) * Math.PI * 2 )
-    }
-  }
   
-  callback (input, output, frameCount) {
-    var outputBufferView = new Float32Array(output)
-    
-    for(var i=0; i<frameCount*2; i+=2 )
-    {
-      outputBufferView[i] = this.sine[this.left_phase]  // left 
-      outputBufferView[i+1] = this.sine[this.right_phase]  // right 
-      this.left_phase += 1
-      if( this.left_phase >= this.tableSize ) this.left_phase -= this.tableSize
-      this.right_phase += 3 // higher pitch so we can distinguish left and right.
-      if( this.right_phase >= this.tableSize ) this.right_phase -= this.tableSize
-    }
+function callback (input, output, frameCount, data) {
+  var outputBufferView = new Float32Array(output)
+
+  for(var i=0; i<frameCount*2; i+=2 )
+  {
+    outputBufferView[i] = data.sine[data.left_phase]  // left 
+    outputBufferView[i+1] = data.sine[data.right_phase]  // right 
+    data.left_phase += 1
+    if( data.left_phase >= data.tableSize ) data.left_phase -= data.tableSize
+    data.right_phase += 3 // higher pitch so we can distinguish left and right.
+    if( data.right_phase >= data.tableSize ) data.right_phase -= data.tableSize
   }
+  return 0
 }
 
 //Main function
 function callbackSine () {
   // initialize stream instance
-  let stream = new JsPaStream(),
-      callback = new SineCallback(200)
+  let stream = new JsPaStream()
+  // initialize data that is sent to callback
+  let data = {
+    left_phase: 0,
+    right_phase: 0,
+    tableSize: tableSize,
+    sine: []
+  }
+  console.log(
+    'PortAudio Test: output sine wave\n',
+    `SR = ${sampleRate}, BufSize = ${framesPerBuffer}\n`
+  )
+  
+  // initialise sinusoidal wavetable
+  for(var i=0; i<tableSize; i++ )
+  {
+    data.sine[i] = Math.sin((i/tableSize) * Math.PI * 2 )
+  }
   
   // initialize PortAudio
   JsAudio.initialize()
@@ -74,12 +77,19 @@ function callbackSine () {
     sampleFormat: formats.paFloat32,
     numInputChannels: channels,
     numOutputChannels: channels,
-    callback: callback.callback.bind(callback)
+    callback: callback,
+    userData: data
   }
   // open stream with options
-  JsAudio.openDefaultStream(streamOpts)
+  console.log(JsAudio.openDefaultStream(streamOpts))
   // start stream
   JsAudio.startStream(stream)
+  // log what we're doing
+  console.log(`Play for ${numSeconds} seconds.\n`)
+  // stop stream when timeout fires
+  //setTimeout(() => {
+    //JsAudio.closeStream(stream)             
+  //}, numSeconds * 1000)
 }
 
 // Run it
