@@ -5,7 +5,7 @@ JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
                                                    size_t bytesPerFrameIn,
                                                    size_t bytesPerFrameOut,
                                                    const LocalValue &userData)
-  : AsyncWorker(callback_), m_frameCount(0),
+  : AsyncWorker(callback_), m_frameCount(0), m_callbackResult(0),
     m_bytesPerFrameIn(bytesPerFrameIn), m_bytesPerFrameOut(bytesPerFrameOut),
     m_inputBuffer(nullptr), m_outputBuffer(nullptr) {
   async = new uv_async_t;
@@ -15,7 +15,6 @@ JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
     , UVCallback
   );
   async->data = this;
-
   uv_mutex_init(&async_lock);
       
   // Save userData to persistent object
@@ -24,6 +23,7 @@ JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
 
 JsPaStreamCallbackBridge::~JsPaStreamCallbackBridge() {
   uv_mutex_destroy(&async_lock);
+  uv_close((uv_handle_t*)async, NULL);
   
   //free buffer memory
   if(m_inputBuffer != nullptr)
@@ -86,7 +86,7 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
       New<Number>(frameCount),
       GetFromPersistent(ToLocString("userData"))
     };
-    callbackReturn = callback->Call(3, argv);
+    callbackReturn = callback->Call(4, argv);
     
     if(m_outputBuffer != nullptr)
       free(m_outputBuffer);
@@ -98,8 +98,9 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
       output->ByteLength()
     );
     
+    m_callbackResult = LocalizeInt(callbackReturn);
   
-  uv_mutex_unlock(&async_lock); 
+  uv_mutex_unlock(&async_lock);
   
 }
   
@@ -116,4 +117,12 @@ void JsPaStreamCallbackBridge::consumeAudioData(void* output, unsigned long fram
     free(m_outputBuffer);
     m_outputBuffer = nullptr;
   }
+}
+
+int JsPaStreamCallbackBridge::getCallbackResult() {
+  int ret;
+  uv_mutex_lock(&async_lock);
+    ret = m_callbackResult;
+  uv_mutex_unlock(&async_lock);
+  return ret;
 }

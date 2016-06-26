@@ -184,7 +184,14 @@ static int StreamCallbackDispatcher (
   bridge->sendToCallback(input, frameCount);
   bridge->consumeAudioData(output, frameCount);
   
-  return 0;
+  return bridge->getCallbackResult();
+}
+
+void StreamFinishedCallback (void* userData) {
+  JsPaStreamCallbackBridge* bridge = static_cast<JsPaStreamCallbackBridge*>(userData);
+  
+  // call JsPaStreamCallbackBridge deconstructor
+  delete bridge;
 }
 
 // http://portaudio.com/docs/v19-doxydocs/portaudio_8h.html#a443ad16338191af364e3be988014cbbe
@@ -211,7 +218,8 @@ NAN_METHOD(openStream) {
     callback = new JsPaStreamCallbackBridge(
       new Callback(ToLocFunction(Get(obj, ToLocString("callback")))), 
       bytesPerFrame(paramsIn.sampleFormat),
-      bytesPerFrame(paramsOut.sampleFormat)
+      bytesPerFrame(paramsOut.sampleFormat),
+      Get(obj, ToLocString("sampleFormat")).FromMaybe<Value>(New<Object>())
     );
   }
   // Start stream
@@ -226,6 +234,12 @@ NAN_METHOD(openStream) {
     static_cast<void*>(callback)
   );
   ThrowIfPaError(err);
+  // set a stream finished callback to mark Persitent as GC ready
+  // only set if there is a JsPaStreamCallbackBridge registered
+  if (callback != nullptr)
+    err = Pa_SetStreamFinishedCallback(stream->streamPtr(), StreamFinishedCallback);
+  
+  // Set return Value
   info.GetReturnValue().Set(true);
 }
 
@@ -249,7 +263,8 @@ NAN_METHOD(openDefaultStream) {
   if (HasOwnProperty(obj, ToLocString("callback")).FromMaybe(false)) {
     callback = new JsPaStreamCallbackBridge(
       new Callback(ToLocFunction(Get(obj, ToLocString("callback")))), 
-      bytesPerFrame(sampleFormat)
+      bytesPerFrame(sampleFormat),
+      Get(obj, ToLocString("userData")).FromMaybe<Value>(New<Object>())
     );
   }
   // Start stream
@@ -264,6 +279,12 @@ NAN_METHOD(openDefaultStream) {
     static_cast<void*>(callback)
   );
   ThrowIfPaError(err);
+  // set a stream finished callback to mark Persitent as GC ready
+  // only set if there is a JsPaStreamCallbackBridge registered
+  if (callback != nullptr)
+    err = Pa_SetStreamFinishedCallback(stream->streamPtr(), StreamFinishedCallback);
+  ThrowIfPaError(err);
+  
   info.GetReturnValue().Set(true);
 }
 
