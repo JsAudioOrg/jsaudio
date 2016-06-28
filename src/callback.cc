@@ -79,7 +79,8 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
       v8::Isolate::GetCurrent(),
       m_bytesPerFrameOut * frameCount
     );
-  
+    
+    // Create array of arguments and call the javascript callback
     LocalValue argv[] = {
       input,
       output,
@@ -98,6 +99,8 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
       output->ByteLength()
     );
     
+    // Store the return result of the javascript callback 
+    // so it be sent to the PaStreamCallback function
     m_callbackResult = LocalizeInt(callbackReturn);
   
   uv_mutex_unlock(&async_lock);
