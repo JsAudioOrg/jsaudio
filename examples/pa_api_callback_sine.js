@@ -87,9 +87,9 @@ function callbackSine () {
   // log what we're doing
   console.log(`Play for ${numSeconds} seconds.\n`)
   // stop stream when timeout fires
-  //setTimeout(() => {
-    //JsAudio.closeStream(stream)             
-  //}, numSeconds * 1000)
+  setTimeout(() => {
+    JsAudio.closeStream(stream)             
+  }, numSeconds * 1000)
 }
 
 // Run it

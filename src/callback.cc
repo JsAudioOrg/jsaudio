@@ -15,40 +15,16 @@ JsPaStreamCallbackBridge::JsPaStreamCallbackBridge(Callback *callback_,
     , UVCallback
   );
   async->data = this;
-  uv_mutex_init(&async_lock);
+  uv_barrier_init(&async_barrier, 2);
       
   // Save userData to persistent object
   SaveToPersistent(ToLocString("userData"), userData);
 }
 
 JsPaStreamCallbackBridge::~JsPaStreamCallbackBridge() {
-  uv_mutex_destroy(&async_lock);
+  uv_barrier_destroy(&async_barrier);
   uv_close((uv_handle_t*)async, NULL);
   
-  //free buffer memory
-  if(m_inputBuffer != nullptr)
-      free(m_inputBuffer);
-  if(m_outputBuffer != nullptr)
-      free(m_outputBuffer);
-}
-
-int JsPaStreamCallbackBridge::sendToCallback(const void* input, unsigned long frameCount) {
-  uv_mutex_lock(&async_lock);
-    m_frameCount = frameCount;
-  
-    if(m_inputBuffer != nullptr)
-      free(m_inputBuffer);
-    m_inputBuffer = malloc(sizeof(float) * frameCount * 2);
-  
-    memmove(
-      m_inputBuffer,
-      input,
-      m_bytesPerFrameIn * frameCount
-    );
-  uv_mutex_unlock(&async_lock);
-  
-  uv_async_send(async);
-  return 0;
 }
 
 void JsPaStreamCallbackBridge::dispatchJSCallback() {
@@ -58,74 +34,47 @@ void JsPaStreamCallbackBridge::dispatchJSCallback() {
   v8::Local<v8::ArrayBuffer> output;
   v8::Local<v8::Value> callbackReturn;
   
-  uv_mutex_lock(&async_lock);
   
-    frameCount = m_frameCount;
-    
-    // Setup ArrayBuffer for input audio data
-    input = v8::ArrayBuffer::New(
-      v8::Isolate::GetCurrent(),
-      m_bytesPerFrameIn * frameCount
-    );
-    // Copy input audio data from bridge buffer to ArrayBuffer
-    memmove(
-      input->GetContents().Data(),
-      m_inputBuffer,
-      input->ByteLength()
-    );
+  frameCount = m_frameCount;
+
+  // Setup ArrayBuffer for input audio data
+  input = v8::ArrayBuffer::New(
+    v8::Isolate::GetCurrent(),
+    const_cast<void*>(m_inputBuffer),
+    m_bytesPerFrameIn * frameCount
+  );
+
+  // Setup ArrayBuffer for output audio data
+  output = v8::ArrayBuffer::New(
+    v8::Isolate::GetCurrent(),
+    m_outputBuffer,
+    m_bytesPerFrameOut * frameCount
+  );
+
+  // Create array of arguments and call the javascript callback
+  LocalValue argv[] = {
+    input,
+    output,
+    New<Number>(frameCount),
+    GetFromPersistent(ToLocString("userData"))
+  };
+  m_callbackResult = LocalizeInt(callback->Call(4, argv));
   
-    // Setup ArrayBuffer for output audio data
-    output = v8::ArrayBuffer::New(
-      v8::Isolate::GetCurrent(),
-      m_bytesPerFrameOut * frameCount
-    );
-    
-    // Create array of arguments and call the javascript callback
-    LocalValue argv[] = {
-      input,
-      output,
-      New<Number>(frameCount),
-      GetFromPersistent(ToLocString("userData"))
-    };
-    callbackReturn = callback->Call(4, argv);
-    
-    if(m_outputBuffer != nullptr)
-      free(m_outputBuffer);
-    m_outputBuffer = malloc(output->ByteLength());
-    // Copy output audio data from bridge buffer to ArrayBuffer
-    memmove(
-      m_outputBuffer,
-      output->GetContents().Data(),
-      output->ByteLength()
-    );
-    
-    // Store the return result of the javascript callback 
-    // so it be sent to the PaStreamCallback function
-    m_callbackResult = LocalizeInt(callbackReturn);
-  
-  uv_mutex_unlock(&async_lock);
-  
-}
-  
-void JsPaStreamCallbackBridge::consumeAudioData(void* output, unsigned long frameCount) {
-  
-  if(m_outputBuffer != nullptr) {
-    memmove(
-      output,
-      m_outputBuffer,
-      m_bytesPerFrameOut * frameCount
-    );
-    
-    // Free the output buffer and set it to nullptr to prevent it from sending the same output data twice
-    free(m_outputBuffer);
-    m_outputBuffer = nullptr;
-  }
+  uv_barrier_wait(&async_barrier);
 }
 
-int JsPaStreamCallbackBridge::getCallbackResult() {
-  int ret;
-  uv_mutex_lock(&async_lock);
-    ret = m_callbackResult;
-  uv_mutex_unlock(&async_lock);
-  return ret;
+int JsPaStreamCallbackBridge::Execute(const void* input, void* output, unsigned long frameCount) {
+  m_frameCount = frameCount;
+
+  m_inputBuffer = input;
+  m_outputBuffer = output;
+
+  // Dispatch the asyncronous callback
+  uv_async_send(async);
+  
+  // Wait for the asyncronous callback
+  uv_barrier_wait(&async_barrier);
+  
+  return m_callbackResult;
 }
+

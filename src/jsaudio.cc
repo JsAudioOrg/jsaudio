@@ -181,10 +181,8 @@ static int StreamCallbackDispatcher (
 ) {
   JsPaStreamCallbackBridge* bridge = static_cast<JsPaStreamCallbackBridge*>(userData);
   
-  bridge->sendToCallback(input, frameCount);
-  bridge->consumeAudioData(output, frameCount);
-  
-  return bridge->getCallbackResult();
+  // Call Js callback
+  return bridge->Execute(input, output, frameCount);
 }
 
 void StreamFinishedCallback (void* userData) {
